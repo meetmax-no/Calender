@@ -1,7 +1,9 @@
 # Kodo Calendar - PRD
 
 ## Opprinnelig problemstilling
-Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19 + TypeScript kalender-app generert av v0.app. Først trengte vi hjelp med å deploye til Vercel (fikset - Output Directory hadde trailing space). Deretter oppdaget vi at appen er en UI-prototype uten funksjonalitet. Vi bygger nå videre på designet med faktisk funksjonalitet.
+Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19 + TypeScript kalender-app generert av v0.app. Først trengte vi hjelp med å deploye til Vercel (fikset - Output Directory hadde trailing space). Deretter oppdaget vi at appen er en UI-prototype uten funksjonalitet.
+
+**OPPDATERT FORSTÅELSE**: Brukeren har en eksisterende, fungerende app kalt "MeetMax Manager v3.4" i repo `meetmax-no/kalender` (ren HTML + React via CDN + Babel). Det er et marketing/sales-pipeline-verktøy med Facebook Ads KPI-analyse. Vi skal **porte hele MeetMax v3.4** til det nye Next.js-designet med fjellbilde + glassmorphism-estetikk.
 
 ## Tech stack
 - Next.js 15.2.6 (App Router)
@@ -21,14 +23,31 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
   - `JSONBIN_BIN_ID`
 
 ## Brukerpersona
-- Én enkeltbruker (eieren) som ønsker en personlig kalender
-- Ingen auth i MVP — bin-ID og master-key utgjør "autentisering"
+- Markedsfører/gründer (Me & Max AS) som jobber med:
+  - **Sales outreach** langs 4 tracks (LinkedIn, NewCustomers, OldContacts, TheContract)
+  - **Facebook Ads** med løpende KPI-tracking (reach, ROAS, CPA, CTR osv.)
+- Én bruker — bin-ID + master-key utgjør "autentisering"
+- Norsk UI
+
+## Eksisterende datakilde (ALLEREDE I BRUK)
+- JSONBin API_KEY: `$2a$10$POD7waxX5380sIzCicwFUejlDXC5wrch8IRkc409YItsJWSTnvpxO` (publikt committet)
+- JSONBin BIN_ID: `68d6a28943b1c97be951089f`
+- Strukturerte data lagret: `{ campaigns: [], kpiData: [], updatedAt }`
+
+## TASK_TYPES (fra config.js)
+- `TRACK1` - S1-LinkedIn (pink)
+- `TRACK2` - S2-NewCustomers (blue)
+- `TRACK3` - S3-OldContacts (sky)
+- `TRACK4` - S4-TheContract (green)
+- `ADMIN` - Admin (slate)
+- `OTHER` - Annet (violet)
 
 ## Core requirements
-- Beholde eksisterende design (brukeren digger det)
-- Dato-navigasjon som faktisk virker (piltaster, Today-knapp)
-- Create / Edit / Delete events
-- Data lagres i jsonbin.io
+- Beholde eksisterende visuelle designspråk (fjellbakgrunn + glassmorphism fra nye repo)
+- Month-view som primær (som MeetMax v3.4), ikke week-view
+- Alle 14+ features fra v3.4 portes over
+- Data lagres i eksisterende JSONBin via server-side Next.js API route (sikrer key)
+- Norsk helligdager + commercial days vises i kalenderen
 
 ## Hva er gjort
 - **2026-04-21**: Klonet repo fra GitHub, flyttet inn i Emergent workspace (/app)
@@ -40,32 +59,51 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 
 ## Prioritert backlog
 
-### P0 (neste: i morgen)
-- [ ] Bruker oppretter JSONBin-bin og gir oss `JSONBIN_MASTER_KEY` + `JSONBIN_BIN_ID`
-- [ ] Opprett `/app/api/calendar/route.ts` (GET + PUT proxy til jsonbin)
-- [ ] Opprett custom hook `useCalendarEvents` (fetch/add/update/delete)
-- [ ] Koble `page.tsx` fra hardkodet array til hook
-- [ ] Ekte dato-navigasjon (piltaster flytter uke, "Today" går til dagens uke)
-- [ ] Current date/month beregnes fra faktisk Date-objekt
-- [ ] "Create Event"-modal med skjema (tittel, dag, start, slutt, farge, beskrivelse, lokasjon)
-- [ ] "Edit Event" + "Delete Event" på event-detaljmodal
+### P0 — Kjerne (Må ha i v1)
+- [ ] API Route `/app/api/calendar/route.ts` (GET + PUT proxy til JSONBin)
+- [ ] Custom hook `useCalendarData` → laster/lagrer `{campaigns, kpiData}`
+- [ ] **Månedsvisning** med dagsceller (Man-Søn), 60px høyde, glassmorphism-styling
+- [ ] Dato-navigasjon (forrige/neste måned, dagens)
+- [ ] Dagsceller viser kampanjer med tasks (farget etter type)
+- [ ] HOLIDAYS + COMMERCIAL_DAYS vist i dagsceller
+- [ ] **Quick-add fra legend-knapperad** nederst (TASK_TYPES som pills)
+- [ ] Modal: "Legg til" (tittel, dato, tid, bildelenke, type)
+- [ ] Klikk på oppgave → toggle completed (strikethrough + opacity)
+- [ ] Klikk på kampanje → Edit-modal (tittel, dato, tasks)
+- [ ] Slett kampanje (hover trash icon)
+- [ ] Filter: vis/skjul oppgavetyper (legend-checkboxes)
+- [ ] **Månedens fremdrift %** (progressbar)
+- [ ] "Lagrer..." / "Online"-indikator
 - [ ] data-testid på alle interaktive elementer
 
-### P1
-- [ ] Day / Month view rendering (ikke bare toggle)
-- [ ] Mini-calendar navigasjon (prev/next month, klikk dato går til den uken)
-- [ ] "My Calendars" checkboxes filtrerer events
-- [ ] Search filtrerer events
-- [ ] Drag-and-drop for å flytte events mellom dager/tider
-- [ ] Resize events
+### P1 — Aktivitetsliste-fane
+- [ ] Tab-bryter (Kalender / Aktiviteter / Analyse)
+- [ ] Sortert tabell med alle tasks (dato, tid, type, kampanje, beskrivelse, status)
+- [ ] Filter: år, måneder (multi-select), Alle/Kun åpne
+- [ ] Sortering på kolonner (dato, type, tittel, status)
+- [ ] "Kopier liste" til utklippstavle
+- [ ] Overdue tasks markert rødt
 
-### P2 / Backlog
-- [ ] Multi-user støtte med auth
-- [ ] Google Calendar sync
-- [ ] Recurring events
-- [ ] Notifikasjoner / reminders
-- [ ] Mobile responsive (nåværende design er desktop-only)
-- [ ] Keyboard shortcuts
+### P2 — Import/Export og verktøy
+- [ ] Import .ics
+- [ ] Eksport .ics per kampanje
+- [ ] CSV-eksport
+- [ ] JSON backup/restore
+- [ ] Google Drive / Dropbox URL-parsing for bilder
+- [ ] Bilde-preview (hover + lock på klikk)
+
+### P3 — Analyse-fane
+- [ ] KPI-grid (4x4) med 16 KPI-kort fra KPI_CARDS
+- [ ] Legg til / slett KPI-rader
+- [ ] CSV-import (Facebook Ads export?) — analysefil lå i `src/csvanalyse.js` og `src/analyse.js`
+- [ ] Budsjett/CPA-målvisning fra CAMPAIGN_DEFAULTS
+
+### Backlog/nice-to-have
+- [ ] Day / Week-visning i tillegg til Month
+- [ ] Drag-drop for å flytte oppgaver mellom dager
+- [ ] Gjentakende oppgaver
+- [ ] Auth / multi-user
+- [ ] Mobile responsive layout
 
 ## Next tasks (ved neste session)
 1. Motta jsonbin credentials fra bruker
