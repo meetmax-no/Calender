@@ -90,3 +90,12 @@ memory/test_credentials.md
 android-sdk/.pnpm-store/v10/files/14/9c783bf64524413084311d99a686de257130921ff686565cfa7c8fd16df38a4b5db261df3d9157e3d131b799084257453ace84cf7590eb7de61713d6999f91
 node_modules/.pnpm/@next+swc-linux-arm64-gnu@15.2.5/node_modules/@next/swc-linux-arm64-gnu/next-swc.linux-arm64-gnu.node
 .pnpm-store/v10/files/14/9c783bf64524413084311d99a686de257130921ff686565cfa7c8fd16df38a4b5db261df3d9157e3d131b799084257453ace84cf7590eb7de61713d6999f91
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
