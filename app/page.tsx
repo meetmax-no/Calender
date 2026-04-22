@@ -9,6 +9,7 @@ import { MiniCalendar } from "@/components/MiniCalendar";
 import { TaskTypesPanel } from "@/components/TaskTypesPanel";
 import { WeekView } from "@/components/WeekView";
 import { MonthView } from "@/components/MonthView";
+import { ListView } from "@/components/ListView";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
@@ -19,7 +20,7 @@ export default function Home() {
   const { config, status: configStatus } = useAppConfig();
 
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<"week" | "month">("week");
+  const [viewMode, setViewMode] = useState<"week" | "month" | "list">("week");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
   const hasInitializedFilter = useRef(false);
@@ -159,6 +160,18 @@ export default function Home() {
               onCellClick={handleCellClick}
               onTodoClick={handleTodoClick}
               onTodoToggle={handleTodoToggle}
+            />
+          )}
+          {viewMode === "list" && (
+            <ListView
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              config={config}
+              todos={todos}
+              visibleTypes={visibleTypes}
+              onTodoEdit={handleTodoClick}
+              onTodoToggle={handleTodoToggle}
+              onTodoDelete={handleDelete}
             />
           )}
 

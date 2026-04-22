@@ -15,7 +15,7 @@ import {
   subMonths,
 } from "@/lib/date";
 
-type ViewMode = "week" | "month";
+type ViewMode = "week" | "month" | "list";
 
 interface MonthViewProps {
   anchorDate: Date;
@@ -105,7 +105,7 @@ export function MonthView({
         </div>
 
         <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
-          {(["week", "month"] as ViewMode[]).map((m) => (
+          {(["week", "month", "list"] as ViewMode[]).map((m) => (
             <button
               key={m}
               data-testid={`view-mode-${m}`}
@@ -116,7 +116,7 @@ export function MonthView({
                   : "text-white/60 hover:text-white hover:bg-white/10"
               }`}
             >
-              {m === "week" ? "Uke" : "Måned"}
+              {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
             </button>
           ))}
         </div>
