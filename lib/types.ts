@@ -1,42 +1,25 @@
-// Delte TypeScript-typer for MeetMax Manager
+// Delte TypeScript-typer for Me & Max ToDo Planner
 
 import type { TaskTypeKey } from "./config";
 
-export interface Task {
-  id: string | number;
+export type TimeSlot = "08-10" | "10-12" | "12-14" | "14-16";
+
+export const TIME_SLOTS: TimeSlot[] = ["08-10", "10-12", "12-14", "14-16"];
+
+export interface Todo {
+  id: string;
   type: TaskTypeKey;
-  time: string; // HH:MM
-  completed: boolean;
-  customTitle?: string;
-  imageUrl?: string;
-}
-
-export interface Campaign {
-  id: string | number;
   title: string;
+  description?: string;
   date: string; // YYYY-MM-DD
-  type: "CAMPAIGN";
-  tasks: Task[];
+  slot: TimeSlot;
+  completed: boolean;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
 }
 
-// KPI-datapunkt (brukt i Analyse-fanen)
-export interface KpiEntry {
-  id: string | number;
-  date: string; // YYYY-MM-DD
-  // dynamiske felter fra KPI_CARDS: reach, impressions, ctrAll, spend, ...
-  [key: string]: string | number | undefined;
-}
-
-// Struktur i JSONBin-bin'en
+// Struktur i JSONBin-bin'en (navn bestemt av bruker: ToDoEvents)
 export interface BinData {
-  campaigns: Campaign[];
-  kpiData: KpiEntry[];
+  ToDoEvents: Todo[];
   updatedAt?: string;
-}
-
-// Flat oppgave (brukt i aktivitetsliste)
-export interface FlatTask extends Task {
-  campaignId: string | number;
-  campaignTitle: string;
-  date: string;
 }
