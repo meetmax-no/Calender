@@ -75,7 +75,6 @@ export function MiniCalendar({
           let styleCls = "text-white hover:bg-white/20";
           if (isSelected) styleCls = "bg-blue-500 text-white font-semibold shadow-md";
           else if (isTod) styleCls = "bg-white/25 text-white font-semibold";
-          else if (isHoliday) styleCls = "text-red-300 hover:bg-white/20";
 
           return (
             <button
@@ -86,8 +85,12 @@ export function MiniCalendar({
               title={holidays[key] || commercialDays[key] || undefined}
             >
               {date.getDate()}
-              {isCommercial && !isSelected && (
-                <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-amber-300" />
+              {(isHoliday || isCommercial) && !isSelected && (
+                <span
+                  className={`absolute bottom-0.5 h-1 w-1 rounded-full ${
+                    isHoliday ? "bg-rose-300" : "bg-amber-300"
+                  }`}
+                />
               )}
             </button>
           );

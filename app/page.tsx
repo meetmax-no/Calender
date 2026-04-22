@@ -15,7 +15,7 @@ export default function Home() {
   const { config, status: configStatus } = useAppConfig();
 
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("week");
+  const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
 
   // Initialiser synlige task-typer når config lastes
@@ -104,12 +104,10 @@ export default function Home() {
               className="flex-1 flex items-center justify-center p-8"
             >
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 text-white text-center max-w-md">
-                <h3 className="text-lg font-semibold mb-2">
-                  {viewMode === "day" ? "Dagsvisning" : "Månedsvisning"}
-                </h3>
+                <h3 className="text-lg font-semibold mb-2">Månedsvisning</h3>
                 <p className="text-sm text-white/70">
-                  Kommer i et senere steg. Bytt tilbake til "Uke" for å se
-                  ukevisningen.
+                  Kommer i et senere steg. Bytt tilbake til &quot;Uke&quot; for å
+                  se ukevisningen.
                 </p>
                 <button
                   onClick={() => setViewMode("week")}

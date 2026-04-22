@@ -17,7 +17,7 @@ import {
 import type { Todo } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
 
-type ViewMode = "day" | "week" | "month";
+type ViewMode = "week" | "month";
 
 interface WeekViewProps {
   anchorDate: Date;
@@ -104,7 +104,7 @@ export function WeekView({
         </div>
 
         <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
-          {(["day", "week", "month"] as ViewMode[]).map((m) => (
+          {(["week", "month"] as ViewMode[]).map((m) => (
             <button
               key={m}
               data-testid={`view-mode-${m}`}
@@ -115,7 +115,7 @@ export function WeekView({
                   : "text-white/60 hover:text-white hover:bg-white/10"
               }`}
             >
-              {m === "day" ? "Dag" : m === "week" ? "Uke" : "Måned"}
+              {m === "week" ? "Uke" : "Måned"}
             </button>
           ))}
         </div>
@@ -123,7 +123,7 @@ export function WeekView({
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 min-h-0">
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl h-full flex flex-col min-h-[520px]">
+        <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/15 shadow-2xl h-full flex flex-col min-h-[520px]">
           {/* Dager-header */}
           <div className="grid grid-cols-[70px_repeat(7,1fr)] border-b border-white/15 flex-shrink-0">
             <div className="p-2" />
@@ -136,28 +136,29 @@ export function WeekView({
                   data-testid={`week-day-header-${toDateKey(date)}`}
                   className="p-2 text-center border-l border-white/10"
                 >
-                  <div
-                    className={`text-[10px] font-semibold tracking-wider ${
-                      marker?.type === "holiday" ? "text-red-300" : "text-white/60"
-                    }`}
-                  >
+                  <div className="text-[10px] font-semibold tracking-wider text-white/60">
                     {formatWeekdayShort(date)}
                   </div>
                   <div
-                    className={`mt-1 mx-auto w-8 h-8 flex items-center justify-center text-base font-semibold ${
+                    className={`mt-1 mx-auto w-8 h-8 flex items-center justify-center text-base font-semibold relative ${
                       today
                         ? "bg-blue-500 rounded-full text-white shadow-lg"
-                        : marker?.type === "holiday"
-                          ? "text-red-300"
-                          : "text-white"
+                        : "text-white"
                     }`}
                   >
                     {formatDayOfMonth(date)}
+                    {marker && !today && (
+                      <span
+                        className={`absolute -bottom-0.5 h-1 w-1 rounded-full ${
+                          marker.type === "holiday" ? "bg-rose-300" : "bg-amber-300"
+                        }`}
+                      />
+                    )}
                   </div>
                   {marker && (
                     <div
-                      className={`text-[9px] mt-0.5 leading-tight truncate px-0.5 ${
-                        marker.type === "holiday" ? "text-red-300" : "text-amber-300"
+                      className={`text-[9px] mt-1 leading-tight truncate px-0.5 font-medium ${
+                        marker.type === "holiday" ? "text-rose-200" : "text-amber-200"
                       }`}
                       title={marker.label}
                     >
@@ -225,7 +226,7 @@ function SlotRow({
             data-testid={`cell-${cellKey}`}
             onClick={() => onCellClick(date, slot)}
             className={`border-t border-l border-white/10 p-1 text-left transition hover:bg-white/5 group relative min-h-[90px] ${
-              marker?.type === "holiday" ? "bg-red-500/5" : ""
+              marker?.type === "holiday" ? "bg-rose-400/5" : ""
             } ${today ? "bg-blue-400/5" : ""}`}
           >
             <div className="space-y-1">
