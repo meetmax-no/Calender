@@ -1,0 +1,93 @@
+"use client";
+
+import { Search, Settings, Menu } from "lucide-react";
+import type { SyncStatus } from "@/hooks/useTodos";
+import { Cloud, CloudOff, Loader2 } from "lucide-react";
+
+interface AppHeaderProps {
+  status: SyncStatus;
+}
+
+export function AppHeader({ status }: AppHeaderProps) {
+  const renderStatus = () => {
+    if (status === "loading" || status === "saving") {
+      return (
+        <span
+          data-testid={`header-status-${status}`}
+          className="flex items-center gap-1.5 text-xs text-amber-200"
+        >
+          <Loader2 className="h-3 w-3 animate-spin" />
+          {status === "saving" ? "Lagrer..." : "Laster..."}
+        </span>
+      );
+    }
+    if (status === "error") {
+      return (
+        <span
+          data-testid="header-status-error"
+          className="flex items-center gap-1.5 text-xs text-red-300"
+        >
+          <CloudOff className="h-3 w-3" />
+          Frakoblet
+        </span>
+      );
+    }
+    return (
+      <span
+        data-testid="header-status-online"
+        className="flex items-center gap-1.5 text-xs text-emerald-300"
+      >
+        <Cloud className="h-3 w-3" />
+        Online
+      </span>
+    );
+  };
+
+  return (
+    <header
+      data-testid="app-header"
+      className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-8 py-5"
+    >
+      <div className="flex items-center gap-4">
+        <button
+          data-testid="header-menu-btn"
+          className="text-white/80 hover:text-white transition"
+          aria-label="Meny"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-xl font-semibold text-white drop-shadow-lg tracking-tight">
+            Me &amp; Max ToDo Planner
+          </h1>
+          {renderStatus()}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/70" />
+          <input
+            data-testid="header-search-input"
+            type="text"
+            placeholder="Søk i oppgaver..."
+            className="w-64 rounded-full bg-white/10 backdrop-blur-sm pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 transition"
+          />
+        </div>
+        <button
+          data-testid="header-settings-btn"
+          className="text-white/80 hover:text-white transition"
+          aria-label="Innstillinger"
+        >
+          <Settings className="h-5 w-5" />
+        </button>
+        <div
+          data-testid="header-avatar"
+          className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-sm font-semibold shadow-lg"
+        >
+          M
+        </div>
+      </div>
+    </header>
+  );
+}

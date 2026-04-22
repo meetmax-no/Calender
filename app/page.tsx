@@ -1,49 +1,53 @@
 "use client";
 
 import Image from "next/image";
-import { Loader2, Cloud, CloudOff, CheckCircle2, Settings } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useTodos } from "@/hooks/useTodos";
 import { useAppConfig, getActiveTaskTypes } from "@/hooks/useAppConfig";
+import { AppHeader } from "@/components/AppHeader";
+import { MiniCalendar } from "@/components/MiniCalendar";
+import { TaskTypesPanel } from "@/components/TaskTypesPanel";
+import { WeekView } from "@/components/WeekView";
+import type { TimeSlot } from "@/lib/config";
 
 export default function Home() {
   const { todos, status, error } = useTodos();
-  const { config, status: configStatus, error: configError } = useAppConfig();
+  const { config, status: configStatus } = useAppConfig();
 
-  const activeTypes = getActiveTaskTypes(config);
-  const holidaysCount = Object.keys(config.holidays).length;
-  const commercialCount = Object.keys(config.commercialDays).length;
+  const [anchorDate, setAnchorDate] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("week");
+  const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
 
-  const statusBadge = () => {
-    if (status === "loading") {
-      return (
-        <span data-testid="status-loading" className="flex items-center gap-2 text-xs text-white/80">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Laster...
-        </span>
-      );
+  // Initialiser synlige task-typer når config lastes
+  useMemo(() => {
+    if (configStatus === "ready" && visibleTypes.size === 0) {
+      const all = getActiveTaskTypes(config).map((t) => t.key);
+      setVisibleTypes(new Set(all));
     }
-    if (status === "saving") {
-      return (
-        <span data-testid="status-saving" className="flex items-center gap-2 text-xs text-amber-200">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Lagrer...
-        </span>
-      );
-    }
-    if (status === "error") {
-      return (
-        <span data-testid="status-error" className="flex items-center gap-2 text-xs text-red-300">
-          <CloudOff className="h-3.5 w-3.5" /> Frakoblet
-        </span>
-      );
-    }
-    return (
-      <span data-testid="status-online" className="flex items-center gap-2 text-xs text-emerald-300">
-        <Cloud className="h-3.5 w-3.5" /> Online
-      </span>
-    );
+  }, [configStatus, config, visibleTypes.size]);
+
+  const handleToggleVisible = (typeKey: string) => {
+    setVisibleTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(typeKey)) next.delete(typeKey);
+      else next.add(typeKey);
+      return next;
+    });
+  };
+
+  const handleQuickAdd = (typeKey: string) => {
+    // Plassholder — steg 3 åpner modal. Logger for nå.
+    console.log("Quick-add", typeKey);
+  };
+
+  const handleCellClick = (date: Date, slot: TimeSlot) => {
+    // Plassholder — steg 3 åpner opprett-modal med forhåndsutfylt dato+slot.
+    console.log("Cell click", date, slot);
   };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Bakgrunnsbilde */}
       <Image
         src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
         alt="Fjellandskap"
@@ -51,119 +55,81 @@ export default function Home() {
         className="object-cover"
         priority
       />
-      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-black/30" />
 
-      <main className="relative min-h-screen flex flex-col items-center justify-center px-8 py-12">
-        <div
-          data-testid="connection-card"
-          className="w-full max-w-xl bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-10 text-white"
+      {/* Header */}
+      <AppHeader status={status} />
+
+      {/* Hovedlayout */}
+      <main className="relative h-screen w-full pt-20 flex">
+        {/* Sidebar */}
+        <aside
+          data-testid="app-sidebar"
+          className="w-72 h-full bg-white/10 backdrop-blur-xl p-5 border-r border-white/20 rounded-tr-3xl flex flex-col gap-2 overflow-y-auto"
         >
-          <div className="flex items-start justify-between mb-8">
-            <div>
-              <h1 data-testid="app-title" className="text-3xl font-semibold drop-shadow-lg">
-                Me &amp; Max ToDo Planner
-              </h1>
-              <p className="text-sm text-white/70 mt-1">Grunnmur · Steg 1</p>
-            </div>
-            {statusBadge()}
-          </div>
+          <MiniCalendar
+            selectedDate={anchorDate}
+            onSelectDate={setAnchorDate}
+            holidays={config.holidays}
+            commercialDays={config.commercialDays}
+          />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-sm text-white/70">JSONBin tilkobling</span>
-              <span className="text-xs font-mono text-white/90">todo-max</span>
-            </div>
+          <div className="h-px bg-white/10 my-2" />
 
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-sm text-white/70">Antall todos i bin</span>
-              <span data-testid="todos-count" className="text-2xl font-semibold tabular-nums">
-                {todos.length}
-              </span>
-            </div>
+          <TaskTypesPanel
+            config={config}
+            visibleTypes={visibleTypes}
+            onToggleVisible={handleToggleVisible}
+            onQuickAdd={handleQuickAdd}
+          />
+        </aside>
 
-            {/* Config-status */}
-            <div className="border-b border-white/10 pb-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-white/70 flex items-center gap-2">
-                  <Settings className="h-3.5 w-3.5" /> Config
-                </span>
-                <span data-testid="config-version" className="text-xs font-mono text-white/90">
-                  {configStatus === "loading" ? "laster..." : `v${config.version}`}
-                </span>
+        {/* Hovedinnhold */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          {viewMode === "week" && (
+            <WeekView
+              anchorDate={anchorDate}
+              onAnchorChange={setAnchorDate}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              config={config}
+              todos={todos}
+              visibleTypes={visibleTypes}
+              onCellClick={handleCellClick}
+            />
+          )}
+          {viewMode !== "week" && (
+            <div
+              data-testid="view-placeholder"
+              className="flex-1 flex items-center justify-center p-8"
+            >
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 text-white text-center max-w-md">
+                <h3 className="text-lg font-semibold mb-2">
+                  {viewMode === "day" ? "Dagsvisning" : "Månedsvisning"}
+                </h3>
+                <p className="text-sm text-white/70">
+                  Kommer i et senere steg. Bytt tilbake til "Uke" for å se
+                  ukevisningen.
+                </p>
+                <button
+                  onClick={() => setViewMode("week")}
+                  className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition"
+                >
+                  Tilbake til uke
+                </button>
               </div>
-              {configStatus === "ready" && (
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div data-testid="config-tasktypes" className="text-lg font-semibold">
-                      {activeTypes.length}
-                    </div>
-                    <div className="text-white/60">Task-typer</div>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div data-testid="config-holidays" className="text-lg font-semibold">
-                      {holidaysCount}
-                    </div>
-                    <div className="text-white/60">Helligdager</div>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div data-testid="config-commercial" className="text-lg font-semibold">
-                      {commercialCount}
-                    </div>
-                    <div className="text-white/60">Merkedager</div>
-                  </div>
-                </div>
-              )}
             </div>
+          )}
 
-            {/* Vis task-typer med farger */}
-            {configStatus === "ready" && activeTypes.length > 0 && (
-              <div className="border-b border-white/10 pb-3">
-                <div className="text-sm text-white/70 mb-2">Aktive task-typer</div>
-                <div className="flex flex-wrap gap-2" data-testid="tasktypes-list">
-                  {activeTypes.map((t) => (
-                    <div
-                      key={t.key}
-                      data-testid={`tasktype-chip-${t.key}`}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs"
-                    >
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: t.color }}
-                      />
-                      <span className="font-medium">{t.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-white/70">Status</span>
-              <div>{statusBadge()}</div>
+          {status === "error" && (
+            <div
+              data-testid="error-banner"
+              className="mx-4 mb-4 p-3 rounded-lg bg-red-500/20 border border-red-400/30 text-sm text-red-100"
+            >
+              <strong>Feil fra JSONBin:</strong> {error}
             </div>
-
-            {(status === "error" || configStatus === "error") && (
-              <div
-                data-testid="error-message"
-                className="mt-4 p-3 rounded-lg bg-red-500/20 border border-red-400/30 text-sm text-red-100"
-              >
-                <strong>Feil:</strong> {error || configError}
-              </div>
-            )}
-
-            {status === "idle" && configStatus === "ready" && (
-              <div className="mt-4 p-3 rounded-lg bg-emerald-500/20 border border-emerald-400/30 text-sm text-emerald-100 flex items-start gap-2">
-                <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>
-                  Forbindelse mot JSONBin er OK og config er lastet fra /config.json.
-                  Klar for Steg 2 — ukevisning med 7×4 grid.
-                </span>
-              </div>
-            )}
-          </div>
+          )}
         </div>
-
-        <p className="mt-6 text-xs text-white/60 font-mono">v0.1.0 — Foundation</p>
       </main>
     </div>
   );
