@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTodos } from "@/hooks/useTodos";
 import { useAppConfig, getActiveTaskTypes } from "@/hooks/useAppConfig";
+import { useUserPrefs, resolveBackgroundIndex } from "@/hooks/useUserPrefs";
 import { AppHeader } from "@/components/AppHeader";
 import { MiniCalendar } from "@/components/MiniCalendar";
 import { TaskTypesPanel } from "@/components/TaskTypesPanel";
@@ -12,18 +13,25 @@ import { MonthView } from "@/components/MonthView";
 import { ListView } from "@/components/ListView";
 import { LoadingToast } from "@/components/LoadingToast";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
+import { SettingsPanel } from "@/components/SettingsPanel";
+import { WeekStats } from "@/components/WeekStats";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { toDateKey } from "@/lib/date";
 
+const DEFAULT_BG =
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
+
 export default function Home() {
   const { todos, status, error, addTodo, updateTodo, deleteTodo, toggleTodo } = useTodos();
   const { config, status: configStatus } = useAppConfig();
+  const { prefs, setPrefs } = useUserPrefs();
 
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month" | "list">("week");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const hasInitializedFilter = useRef(false);
 
   useEffect(() => {
@@ -33,6 +41,21 @@ export default function Home() {
       hasInitializedFilter.current = true;
     }
   }, [configStatus, config]);
+
+  // Regn ut aktuelt bakgrunnsbilde basert på preferanser + config
+  const backgroundUrl = useMemo(() => {
+    const backgrounds = config.backgrounds ?? [];
+    if (backgrounds.length === 0) return DEFAULT_BG;
+    const idx = resolveBackgroundIndex(
+      prefs.backgroundMode,
+      prefs.backgroundIndex,
+      backgrounds.length,
+    );
+    return backgrounds[idx]?.url ?? DEFAULT_BG;
+    // "daily" og "random" baserer seg på tid — vi vil ikke at de skal rerendre
+    // oftere enn nødvendig, så re-evaluering skjer ved navigering/refresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.backgrounds, prefs.backgroundIndex, prefs.backgroundMode]);
 
   const handleToggleVisible = (typeKey: string) => {
     setVisibleTypes((prev) => {
@@ -52,7 +75,6 @@ export default function Home() {
     }
   };
 
-  // Quick-add fra Tasks-panelet (+ ikon)
   const handleQuickAdd = (typeKey: string) => {
     const typeConfig = config.taskTypes[typeKey];
     setModalMode({
@@ -63,16 +85,10 @@ export default function Home() {
     });
   };
 
-  // Klikk på tom celle i grid
   const handleCellClick = (date: Date, slot: TimeSlot) => {
-    setModalMode({
-      kind: "create",
-      initialDate: toDateKey(date),
-      initialSlot: slot,
-    });
+    setModalMode({ kind: "create", initialDate: toDateKey(date), initialSlot: slot });
   };
 
-  // Klikk på eksisterende todo
   const handleTodoClick = (todo: Todo) => {
     setModalMode({ kind: "edit", todo });
   };
@@ -83,11 +99,8 @@ export default function Home() {
 
   const handleSave = async (todo: Todo) => {
     const existing = todos.find((t) => t.id === todo.id);
-    if (existing) {
-      await updateTodo(todo.id, todo);
-    } else {
-      await addTodo(todo);
-    }
+    if (existing) await updateTodo(todo.id, todo);
+    else await addTodo(todo);
   };
 
   const handleDelete = async (id: string) => {
@@ -101,15 +114,16 @@ export default function Home() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <Image
-        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
-        alt="Fjellandskap"
+        key={backgroundUrl}
+        src={backgroundUrl}
+        alt="Bakgrunn"
         fill
         className="object-cover"
         priority
       />
       <div className="absolute inset-0 bg-black/30" />
 
-      <AppHeader status={status} />
+      <AppHeader status={status} onSettingsClick={() => setSettingsOpen(true)} />
 
       <main className="relative h-screen w-full pt-20 flex">
         <aside
@@ -124,6 +138,8 @@ export default function Home() {
           />
 
           <div className="h-px bg-white/10 my-2" />
+
+          <WeekStats anchorDate={anchorDate} todos={todos} visibleTypes={visibleTypes} />
 
           <TaskTypesPanel
             config={config}
@@ -174,10 +190,7 @@ export default function Home() {
               onTodoToggle={handleTodoToggle}
               onTodoDelete={handleDelete}
               onCreateNew={() =>
-                setModalMode({
-                  kind: "create",
-                  initialDate: toDateKey(anchorDate),
-                })
+                setModalMode({ kind: "create", initialDate: toDateKey(anchorDate) })
               }
             />
           )}
@@ -203,6 +216,16 @@ export default function Home() {
           onDuplicate={handleDuplicate}
         />
       )}
+
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        config={config}
+        backgroundIndex={prefs.backgroundIndex}
+        backgroundMode={prefs.backgroundMode}
+        onSelectBackground={(idx) => setPrefs({ backgroundIndex: idx })}
+        onSelectMode={(mode) => setPrefs({ backgroundMode: mode })}
+      />
 
       <LoadingToast status={status} configStatus={configStatus} />
     </div>

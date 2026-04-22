@@ -13,6 +13,11 @@ export interface PaletteColor {
   hex: string;
 }
 
+export interface BackgroundImage {
+  url: string;
+  name: string;
+}
+
 export interface AppConfig {
   version: string;
   updatedAt: string;
@@ -20,6 +25,7 @@ export interface AppConfig {
   palette: PaletteColor[];
   holidays: Record<string, string>;
   commercialDays: Record<string, string>;
+  backgrounds?: BackgroundImage[];
 }
 
 // Statiske UI-strenger (ikke brukerkonfigurerbart)

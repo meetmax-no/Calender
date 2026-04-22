@@ -6,9 +6,10 @@ import { Cloud, CloudOff, Loader2 } from "lucide-react";
 
 interface AppHeaderProps {
   status: SyncStatus;
+  onSettingsClick: () => void;
 }
 
-export function AppHeader({ status }: AppHeaderProps) {
+export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
   const renderStatus = () => {
     if (status === "loading" || status === "saving") {
       return (
@@ -76,7 +77,8 @@ export function AppHeader({ status }: AppHeaderProps) {
         </div>
         <button
           data-testid="header-settings-btn"
-          className="text-white/80 hover:text-white transition"
+          onClick={onSettingsClick}
+          className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-md transition"
           aria-label="Innstillinger"
         >
           <Settings className="h-5 w-5" />

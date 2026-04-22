@@ -93,5 +93,16 @@
     "2026-10-31": "Halloween",
     "2026-11-27": "Black Friday",
     "2026-11-30": "Cyber Monday"
-  }
+  },
+  "backgrounds": [
+    { "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop", "name": "Fjell ved soloppgang" },
+    { "url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2070&auto=format&fit=crop", "name": "Skog om våren" },
+    { "url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2070&auto=format&fit=crop", "name": "Tåkete fjellrekke" },
+    { "url": "https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?q=80&w=2070&auto=format&fit=crop", "name": "Snødekte topper" },
+    { "url": "https://images.unsplash.com/photo-1506260408121-e353d10b87c7?q=80&w=2070&auto=format&fit=crop", "name": "Norsk fjord" },
+    { "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop", "name": "Fjellvann" },
+    { "url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop", "name": "Stjernehimmel" },
+    { "url": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=2070&auto=format&fit=crop", "name": "Nordlys" },
+    { "url": "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?q=80&w=2070&auto=format&fit=crop", "name": "Ørken om kvelden" }
+  ]
 }
