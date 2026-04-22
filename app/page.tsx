@@ -173,6 +173,12 @@ export default function Home() {
               onTodoEdit={handleTodoClick}
               onTodoToggle={handleTodoToggle}
               onTodoDelete={handleDelete}
+              onCreateNew={() =>
+                setModalMode({
+                  kind: "create",
+                  initialDate: toDateKey(anchorDate),
+                })
+              }
             />
           )}
 

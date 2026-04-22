@@ -9,6 +9,7 @@ import {
   ArrowUp,
   ArrowDown,
   ListTodo,
+  Plus,
 } from "lucide-react";
 import type { Todo, TimeSlot } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
@@ -30,6 +31,7 @@ interface ListViewProps {
   onTodoEdit: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
   onTodoDelete: (id: string) => void;
+  onCreateNew: () => void;
 }
 
 export function ListView({
@@ -41,6 +43,7 @@ export function ListView({
   onTodoEdit,
   onTodoToggle,
   onTodoDelete,
+  onCreateNew,
 }: ListViewProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
@@ -154,21 +157,32 @@ export function ListView({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
-          {(["week", "month", "list"] as ViewMode[]).map((m) => (
-            <button
-              key={m}
-              data-testid={`view-mode-${m}`}
-              onClick={() => onViewModeChange(m)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition ${
-                viewMode === m
-                  ? "bg-white/20 text-white"
-                  : "text-white/60 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <button
+            data-testid="list-create-new-btn"
+            onClick={onCreateNew}
+            className="px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow transition flex items-center gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            Ny oppgave
+          </button>
+
+          <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
+            {(["week", "month", "list"] as ViewMode[]).map((m) => (
+              <button
+                key={m}
+                data-testid={`view-mode-${m}`}
+                onClick={() => onViewModeChange(m)}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition ${
+                  viewMode === m
+                    ? "bg-white/20 text-white"
+                    : "text-white/60 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -180,11 +194,20 @@ export function ListView({
               data-testid="list-empty"
               className="p-12 text-center text-white/60 text-sm"
             >
-              Ingen oppgaver å vise her.
-              {statusFilter !== "all" && (
+              <p>Ingen oppgaver å vise her.</p>
+              {statusFilter !== "all" ? (
                 <span className="block mt-1 text-white/40 text-xs">
                   Prøv å bytte status-filter.
                 </span>
+              ) : (
+                <button
+                  data-testid="list-empty-create-btn"
+                  onClick={onCreateNew}
+                  className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow transition"
+                >
+                  <Plus className="h-4 w-4" />
+                  Opprett din første oppgave
+                </button>
               )}
             </div>
           ) : (
