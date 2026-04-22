@@ -34,6 +34,11 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 - JSONBin BIN_ID: `68d6a28943b1c97be951089f`
 - Strukturerte data lagret: `{ campaigns: [], kpiData: [], updatedAt }`
 
+**⚠️ TODO FREDAG**: Bytt API-key i JSONBin (Regenerate Master Key).
+- Grunn: gammel key er eksponert i `meetmax-no/kalender` (public repo)
+- Avhengighet: En annen app bruker fortsatt gammel key - må oppdateres først
+- Steg: (1) oppdater gammel app først, (2) regenerer key i jsonbin.io, (3) oppdater Vercel env var `JSONBIN_MASTER_KEY` for `meetmax-no/Calender`, (4) oppdater lokal `/app/.env.local`
+
 ## TASK_TYPES (fra config.js)
 - `TRACK1` - S1-LinkedIn (pink)
 - `TRACK2` - S2-NewCustomers (blue)
