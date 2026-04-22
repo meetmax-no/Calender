@@ -123,7 +123,7 @@ export function WeekView({
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 min-h-0">
-        <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/15 shadow-2xl h-full flex flex-col min-h-[520px]">
+        <div className="bg-white/[0.02] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl h-full flex flex-col min-h-[520px]">
           {/* Dager-header */}
           <div className="grid grid-cols-[70px_repeat(7,1fr)] border-b border-white/15 flex-shrink-0">
             <div className="p-2" />

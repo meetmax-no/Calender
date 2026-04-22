@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTodos } from "@/hooks/useTodos";
 import { useAppConfig, getActiveTaskTypes } from "@/hooks/useAppConfig";
 import { AppHeader } from "@/components/AppHeader";
@@ -17,14 +17,16 @@ export default function Home() {
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
+  const hasInitializedFilter = useRef(false);
 
-  // Initialiser synlige task-typer når config lastes
-  useMemo(() => {
-    if (configStatus === "ready" && visibleTypes.size === 0) {
+  // Kun førstegangs-initialisering — ikke resett etter bruker har fjernet alle
+  useEffect(() => {
+    if (configStatus === "ready" && !hasInitializedFilter.current) {
       const all = getActiveTaskTypes(config).map((t) => t.key);
       setVisibleTypes(new Set(all));
+      hasInitializedFilter.current = true;
     }
-  }, [configStatus, config, visibleTypes.size]);
+  }, [configStatus, config]);
 
   const handleToggleVisible = (typeKey: string) => {
     setVisibleTypes((prev) => {
@@ -33,6 +35,15 @@ export default function Home() {
       else next.add(typeKey);
       return next;
     });
+  };
+
+  const handleSetAllVisible = (visible: boolean) => {
+    if (visible) {
+      const all = getActiveTaskTypes(config).map((t) => t.key);
+      setVisibleTypes(new Set(all));
+    } else {
+      setVisibleTypes(new Set());
+    }
   };
 
   const handleQuickAdd = (typeKey: string) => {
@@ -80,6 +91,7 @@ export default function Home() {
             config={config}
             visibleTypes={visibleTypes}
             onToggleVisible={handleToggleVisible}
+            onSetAllVisible={handleSetAllVisible}
             onQuickAdd={handleQuickAdd}
           />
         </aside>
