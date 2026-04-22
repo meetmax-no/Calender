@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Trash2, CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { X, Trash2, CheckCircle2, Circle, Loader2, Copy } from "lucide-react";
 import type { AppConfig, TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { TIME_SLOTS } from "@/lib/types";
@@ -17,17 +17,21 @@ interface TaskModalProps {
   onClose: () => void;
   onSave: (todo: Todo) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  onDuplicate?: (todo: Todo) => Promise<void>;
 }
 
 function generateId(): string {
   return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function formatDateForInput(dateStr: string): string {
-  return dateStr; // allerede YYYY-MM-DD
-}
-
-export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModalProps) {
+export function TaskModal({
+  mode,
+  config,
+  onClose,
+  onSave,
+  onDelete,
+  onDuplicate,
+}: TaskModalProps) {
   const activeTypes = getActiveTaskTypes(config);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -43,10 +47,7 @@ export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModal
         }
       : {
           title: "",
-          type:
-            mode.initialType ??
-            activeTypes[0]?.key ??
-            "OTHER",
+          type: mode.initialType ?? activeTypes[0]?.key ?? "OTHER",
           date: mode.initialDate ?? today,
           slot:
             mode.initialSlot ??
@@ -65,15 +66,19 @@ export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModal
   const [completed, setCompleted] = useState(initialValues.completed);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   // Escape lukker modalen
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (confirmingDelete) setConfirmingDelete(false);
+        else onClose();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, confirmingDelete]);
 
   const handleSave = async () => {
     if (!title.trim()) return;
@@ -111,9 +116,8 @@ export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModal
     }
   };
 
-  const handleDelete = async () => {
+  const handleConfirmDelete = async () => {
     if (mode.kind !== "edit" || !onDelete) return;
-    if (!window.confirm(`Slett "${mode.todo.title}"?`)) return;
     setDeleting(true);
     try {
       await onDelete(mode.todo.id);
@@ -121,10 +125,33 @@ export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModal
     } catch (err) {
       console.error(err);
       setDeleting(false);
+      setConfirmingDelete(false);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (mode.kind !== "edit" || !onDuplicate) return;
+    setSaving(true);
+    const now = new Date().toISOString();
+    const copy: Todo = {
+      ...mode.todo,
+      id: generateId(),
+      title: `${mode.todo.title} (kopi)`,
+      completed: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    try {
+      await onDuplicate(copy);
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setSaving(false);
     }
   };
 
   const selectedTypeConfig = config.taskTypes[type];
+  const isEdit = mode.kind === "edit";
 
   return (
     <div
@@ -141,7 +168,7 @@ export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModal
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold tracking-tight">
-            {mode.kind === "edit" ? "Rediger oppgave" : "Ny oppgave"}
+            {isEdit ? "Rediger oppgave" : "Ny oppgave"}
           </h2>
           <button
             data-testid="modal-close-btn"
@@ -214,7 +241,7 @@ export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModal
               <input
                 data-testid="modal-date-input"
                 type="date"
-                value={formatDateForInput(date)}
+                value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/60 [color-scheme:dark]"
               />
@@ -277,52 +304,99 @@ export function TaskModal({ mode, config, onClose, onSave, onDelete }: TaskModal
           </button>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 flex items-center gap-2">
-          {mode.kind === "edit" && onDelete && (
-            <button
-              data-testid="modal-delete-btn"
-              onClick={handleDelete}
-              disabled={deleting || saving}
-              className="px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-100 text-sm font-medium transition disabled:opacity-50 flex items-center gap-1.5"
+        {/* Footer - bytter utseende i slett-bekreftelse */}
+        <div className="mt-6">
+          {confirmingDelete ? (
+            <div
+              data-testid="delete-confirm-bar"
+              className="rounded-lg bg-red-500/15 border border-red-400/30 p-3 flex items-center gap-3"
             >
-              {deleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4 text-red-300 flex-shrink-0" />
+              <div className="flex-1 text-sm">
+                <p className="text-red-100 font-medium">Slett denne oppgaven?</p>
+                <p className="text-red-200/70 text-xs mt-0.5">
+                  Kan ikke angres.
+                </p>
+              </div>
+              <button
+                data-testid="delete-confirm-cancel"
+                onClick={() => setConfirmingDelete(false)}
+                disabled={deleting}
+                className="px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition"
+              >
+                Avbryt
+              </button>
+              <button
+                data-testid="delete-confirm-ok"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-50"
+                autoFocus
+              >
+                {deleting ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3 w-3" />
+                )}
+                Ja, slett
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {isEdit && onDelete && (
+                <button
+                  data-testid="modal-delete-btn"
+                  onClick={() => setConfirmingDelete(true)}
+                  disabled={saving}
+                  className="px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-100 text-sm font-medium transition disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Slett
+                </button>
               )}
-              Slett
-            </button>
+              {isEdit && onDuplicate && (
+                <button
+                  data-testid="modal-duplicate-btn"
+                  onClick={handleDuplicate}
+                  disabled={saving}
+                  className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-white text-sm font-medium transition disabled:opacity-50 flex items-center gap-1.5"
+                  title="Opprett en kopi"
+                >
+                  <Copy className="h-4 w-4" />
+                  Dupliser
+                </button>
+              )}
+              <div className="flex-1" />
+              <button
+                data-testid="modal-cancel-btn"
+                onClick={onClose}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-white text-sm font-medium transition disabled:opacity-50"
+              >
+                Avbryt
+              </button>
+              <button
+                data-testid="modal-save-btn"
+                onClick={handleSave}
+                disabled={saving || !title.trim()}
+                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow-lg transition disabled:opacity-50 flex items-center gap-1.5"
+                style={
+                  selectedTypeConfig && !saving && title.trim()
+                    ? { backgroundColor: selectedTypeConfig.color }
+                    : undefined
+                }
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Lagrer...
+                  </>
+                ) : (
+                  "Lagre"
+                )}
+              </button>
+            </div>
           )}
-          <div className="flex-1" />
-          <button
-            data-testid="modal-cancel-btn"
-            onClick={onClose}
-            disabled={saving || deleting}
-            className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-white text-sm font-medium transition disabled:opacity-50"
-          >
-            Avbryt
-          </button>
-          <button
-            data-testid="modal-save-btn"
-            onClick={handleSave}
-            disabled={saving || deleting || !title.trim()}
-            className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow-lg transition disabled:opacity-50 flex items-center gap-1.5"
-            style={
-              selectedTypeConfig && !saving && title.trim()
-                ? { backgroundColor: selectedTypeConfig.color }
-                : undefined
-            }
-          >
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Lagrer...
-              </>
-            ) : (
-              "Lagre"
-            )}
-          </button>
         </div>
       </div>
     </div>

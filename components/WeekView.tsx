@@ -234,7 +234,7 @@ function SlotRow({
           <div
             key={cellKey}
             data-testid={`cell-${cellKey}`}
-            className={`border-t border-l border-white/10 p-1 transition group relative min-h-[90px] ${
+            className={`border-t border-l border-white/10 p-1.5 transition group relative min-h-[105px] ${
               marker?.type === "holiday" ? "bg-rose-400/5" : ""
             } ${today ? "bg-blue-400/5" : ""}`}
           >
@@ -253,7 +253,7 @@ function SlotRow({
                   <div
                     key={t.id}
                     data-testid={`todo-card-${t.id}`}
-                    className={`pointer-events-auto flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium shadow-sm group/todo transition ${
+                    className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition ${
                       t.completed ? "opacity-50" : ""
                     }`}
                     style={{ backgroundColor: typeConfig.color, color: "white" }}
@@ -264,11 +264,11 @@ function SlotRow({
                         e.stopPropagation();
                         onTodoToggle(t.id);
                       }}
-                      className="flex-shrink-0 w-3.5 h-3.5 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
+                      className="flex-shrink-0 w-4 h-4 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
                       aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
                       title={t.completed ? "Marker som ikke-ferdig" : "Marker som ferdig"}
                     >
-                      {t.completed && <Check className="h-2 w-2 text-white" strokeWidth={4} />}
+                      {t.completed && <Check className="h-2.5 w-2.5 text-white" strokeWidth={4} />}
                     </button>
                     <button
                       data-testid={`todo-click-${t.id}`}
@@ -276,7 +276,7 @@ function SlotRow({
                         e.stopPropagation();
                         onTodoClick(t);
                       }}
-                      className={`flex-1 truncate text-left ${t.completed ? "line-through" : ""}`}
+                      className={`flex-1 truncate text-left leading-tight ${t.completed ? "line-through" : ""}`}
                       title={t.title}
                     >
                       {t.title}

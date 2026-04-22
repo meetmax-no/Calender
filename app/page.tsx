@@ -91,6 +91,10 @@ export default function Home() {
     await deleteTodo(id);
   };
 
+  const handleDuplicate = async (todo: Todo) => {
+    await addTodo(todo);
+  };
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <Image
@@ -181,6 +185,7 @@ export default function Home() {
           onClose={() => setModalMode(null)}
           onSave={handleSave}
           onDelete={handleDelete}
+          onDuplicate={handleDuplicate}
         />
       )}
     </div>
