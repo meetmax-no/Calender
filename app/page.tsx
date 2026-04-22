@@ -10,6 +10,7 @@ import { TaskTypesPanel } from "@/components/TaskTypesPanel";
 import { WeekView } from "@/components/WeekView";
 import { MonthView } from "@/components/MonthView";
 import { ListView } from "@/components/ListView";
+import { LoadingToast } from "@/components/LoadingToast";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
@@ -196,6 +197,8 @@ export default function Home() {
           onDuplicate={handleDuplicate}
         />
       )}
+
+      <LoadingToast status={status} configStatus={configStatus} />
     </div>
   );
 }

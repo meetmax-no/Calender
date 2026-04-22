@@ -174,7 +174,7 @@ export function ListView({
 
       {/* Tabell */}
       <div className="flex-1 overflow-auto p-4 min-h-0">
-        <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="max-w-3xl bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
           {sorted.length === 0 ? (
             <div
               data-testid="list-empty"
