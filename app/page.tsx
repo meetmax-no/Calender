@@ -15,7 +15,6 @@ import { LoadingToast } from "@/components/LoadingToast";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { WeekStats } from "@/components/WeekStats";
-import { AppFooter } from "@/components/AppFooter";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { toDateKey } from "@/lib/date";
@@ -134,26 +133,35 @@ export default function Home() {
       <main className="relative h-screen w-full pt-20 flex">
         <aside
           data-testid="app-sidebar"
-          className="w-72 h-full bg-white/10 backdrop-blur-xl p-5 border-r border-white/20 rounded-tr-3xl flex flex-col gap-2 overflow-y-auto"
+          className="w-72 h-full bg-white/10 backdrop-blur-xl border-r border-white/20 rounded-tr-3xl flex flex-col"
         >
-          <MiniCalendar
-            selectedDate={anchorDate}
-            onSelectDate={setAnchorDate}
-            holidays={config.holidays}
-            commercialDays={config.commercialDays}
-          />
+          <div className="flex-1 p-5 flex flex-col gap-2 overflow-y-auto">
+            <MiniCalendar
+              selectedDate={anchorDate}
+              onSelectDate={setAnchorDate}
+              holidays={config.holidays}
+              commercialDays={config.commercialDays}
+            />
 
-          <div className="h-px bg-white/10 my-2" />
+            <div className="h-px bg-white/10 my-2" />
 
-          <WeekStats anchorDate={anchorDate} todos={todos} visibleTypes={visibleTypes} />
+            <WeekStats anchorDate={anchorDate} todos={todos} visibleTypes={visibleTypes} />
 
-          <TaskTypesPanel
-            config={config}
-            visibleTypes={visibleTypes}
-            onToggleVisible={handleToggleVisible}
-            onSetAllVisible={handleSetAllVisible}
-            onQuickAdd={handleQuickAdd}
-          />
+            <TaskTypesPanel
+              config={config}
+              visibleTypes={visibleTypes}
+              onToggleVisible={handleToggleVisible}
+              onSetAllVisible={handleSetAllVisible}
+              onQuickAdd={handleQuickAdd}
+            />
+          </div>
+
+          <div
+            data-testid="app-footer"
+            className="px-5 py-3 border-t border-white/10 text-[11px] text-white/45 font-medium tracking-wider select-none print:hidden"
+          >
+            By Ko | Do · Consult · v1.0
+          </div>
         </aside>
 
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
@@ -236,7 +244,6 @@ export default function Home() {
       />
 
       <LoadingToast status={status} configStatus={configStatus} />
-      <AppFooter />
     </div>
   );
 }
