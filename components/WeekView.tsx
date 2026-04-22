@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import type { TimeSlot } from "@/lib/config";
 import { TIME_SLOTS } from "@/lib/types";
 import {
@@ -28,6 +28,8 @@ interface WeekViewProps {
   todos: Todo[];
   visibleTypes: Set<string>;
   onCellClick: (date: Date, slot: TimeSlot) => void;
+  onTodoClick: (todo: Todo) => void;
+  onTodoToggle: (id: string) => void;
 }
 
 export function WeekView({
@@ -39,6 +41,8 @@ export function WeekView({
   todos,
   visibleTypes,
   onCellClick,
+  onTodoClick,
+  onTodoToggle,
 }: WeekViewProps) {
   const weekDays = getWeekDays(anchorDate);
   const weekNum = getISOWeek(weekDays[0]);
@@ -181,6 +185,8 @@ export function WeekView({
                 getDayMarker={getDayMarker}
                 config={config}
                 onCellClick={onCellClick}
+                onTodoClick={onTodoClick}
+                onTodoToggle={onTodoToggle}
               />
             ))}
           </div>
@@ -197,6 +203,8 @@ interface SlotRowProps {
   getDayMarker: (date: Date) => { type: "holiday" | "commercial"; label: string } | null;
   config: AppConfig;
   onCellClick: (date: Date, slot: TimeSlot) => void;
+  onTodoClick: (todo: Todo) => void;
+  onTodoToggle: (id: string) => void;
 }
 
 function SlotRow({
@@ -206,6 +214,8 @@ function SlotRow({
   getDayMarker,
   config,
   onCellClick,
+  onTodoClick,
+  onTodoToggle,
 }: SlotRowProps) {
   return (
     <>
@@ -221,15 +231,21 @@ function SlotRow({
         const today = isToday(date);
         const cellKey = `${toDateKey(date)}_${slot}`;
         return (
-          <button
+          <div
             key={cellKey}
             data-testid={`cell-${cellKey}`}
-            onClick={() => onCellClick(date, slot)}
-            className={`border-t border-l border-white/10 p-1 text-left transition hover:bg-white/5 group relative min-h-[90px] ${
+            className={`border-t border-l border-white/10 p-1 transition group relative min-h-[90px] ${
               marker?.type === "holiday" ? "bg-rose-400/5" : ""
             } ${today ? "bg-blue-400/5" : ""}`}
           >
-            <div className="space-y-1">
+            {/* Klikkbar bakgrunn for å opprette ny */}
+            <button
+              data-testid={`cell-bg-${cellKey}`}
+              onClick={() => onCellClick(date, slot)}
+              className="absolute inset-0 hover:bg-white/5 transition"
+              aria-label="Legg til ny oppgave"
+            />
+            <div className="relative space-y-1 pointer-events-none">
               {cellTodos.map((t) => {
                 const typeConfig = config.taskTypes[t.type];
                 if (!typeConfig) return null;
@@ -237,13 +253,34 @@ function SlotRow({
                   <div
                     key={t.id}
                     data-testid={`todo-card-${t.id}`}
-                    className={`rounded-md px-2 py-1 text-[11px] font-medium shadow-sm truncate ${
-                      t.completed ? "opacity-50 line-through" : ""
+                    className={`pointer-events-auto flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium shadow-sm group/todo transition ${
+                      t.completed ? "opacity-50" : ""
                     }`}
                     style={{ backgroundColor: typeConfig.color, color: "white" }}
-                    title={t.title}
                   >
-                    {t.title}
+                    <button
+                      data-testid={`todo-toggle-${t.id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTodoToggle(t.id);
+                      }}
+                      className="flex-shrink-0 w-3.5 h-3.5 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
+                      aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
+                      title={t.completed ? "Marker som ikke-ferdig" : "Marker som ferdig"}
+                    >
+                      {t.completed && <Check className="h-2 w-2 text-white" strokeWidth={4} />}
+                    </button>
+                    <button
+                      data-testid={`todo-click-${t.id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTodoClick(t);
+                      }}
+                      className={`flex-1 truncate text-left ${t.completed ? "line-through" : ""}`}
+                      title={t.title}
+                    >
+                      {t.title}
+                    </button>
                   </div>
                 );
               })}
@@ -253,7 +290,7 @@ function SlotRow({
                 <span className="text-white/80 text-lg">+</span>
               </div>
             )}
-          </button>
+          </div>
         );
       })}
     </>

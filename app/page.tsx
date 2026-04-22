@@ -8,18 +8,21 @@ import { AppHeader } from "@/components/AppHeader";
 import { MiniCalendar } from "@/components/MiniCalendar";
 import { TaskTypesPanel } from "@/components/TaskTypesPanel";
 import { WeekView } from "@/components/WeekView";
+import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import type { TimeSlot } from "@/lib/config";
+import type { Todo } from "@/lib/types";
+import { toDateKey } from "@/lib/date";
 
 export default function Home() {
-  const { todos, status, error } = useTodos();
+  const { todos, status, error, addTodo, updateTodo, deleteTodo, toggleTodo } = useTodos();
   const { config, status: configStatus } = useAppConfig();
 
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
+  const [modalMode, setModalMode] = useState<ModalMode | null>(null);
   const hasInitializedFilter = useRef(false);
 
-  // Kun førstegangs-initialisering — ikke resett etter bruker har fjernet alle
   useEffect(() => {
     if (configStatus === "ready" && !hasInitializedFilter.current) {
       const all = getActiveTaskTypes(config).map((t) => t.key);
@@ -46,19 +49,50 @@ export default function Home() {
     }
   };
 
+  // Quick-add fra Tasks-panelet (+ ikon)
   const handleQuickAdd = (typeKey: string) => {
-    // Plassholder — steg 3 åpner modal. Logger for nå.
-    console.log("Quick-add", typeKey);
+    const typeConfig = config.taskTypes[typeKey];
+    setModalMode({
+      kind: "create",
+      initialType: typeKey,
+      initialDate: toDateKey(anchorDate),
+      initialSlot: (typeConfig?.defaultSlot as TimeSlot) ?? "10-12",
+    });
   };
 
+  // Klikk på tom celle i grid
   const handleCellClick = (date: Date, slot: TimeSlot) => {
-    // Plassholder — steg 3 åpner opprett-modal med forhåndsutfylt dato+slot.
-    console.log("Cell click", date, slot);
+    setModalMode({
+      kind: "create",
+      initialDate: toDateKey(date),
+      initialSlot: slot,
+    });
+  };
+
+  // Klikk på eksisterende todo
+  const handleTodoClick = (todo: Todo) => {
+    setModalMode({ kind: "edit", todo });
+  };
+
+  const handleTodoToggle = async (id: string) => {
+    await toggleTodo(id);
+  };
+
+  const handleSave = async (todo: Todo) => {
+    const existing = todos.find((t) => t.id === todo.id);
+    if (existing) {
+      await updateTodo(todo.id, todo);
+    } else {
+      await addTodo(todo);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteTodo(id);
   };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Bakgrunnsbilde */}
       <Image
         src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
         alt="Fjellandskap"
@@ -68,12 +102,9 @@ export default function Home() {
       />
       <div className="absolute inset-0 bg-black/30" />
 
-      {/* Header */}
       <AppHeader status={status} />
 
-      {/* Hovedlayout */}
       <main className="relative h-screen w-full pt-20 flex">
-        {/* Sidebar */}
         <aside
           data-testid="app-sidebar"
           className="w-72 h-full bg-white/10 backdrop-blur-xl p-5 border-r border-white/20 rounded-tr-3xl flex flex-col gap-2 overflow-y-auto"
@@ -96,7 +127,6 @@ export default function Home() {
           />
         </aside>
 
-        {/* Hovedinnhold */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {viewMode === "week" && (
             <WeekView
@@ -108,6 +138,8 @@ export default function Home() {
               todos={todos}
               visibleTypes={visibleTypes}
               onCellClick={handleCellClick}
+              onTodoClick={handleTodoClick}
+              onTodoToggle={handleTodoToggle}
             />
           )}
           {viewMode !== "week" && (
@@ -141,6 +173,16 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {modalMode && (
+        <TaskModal
+          mode={modalMode}
+          config={config}
+          onClose={() => setModalMode(null)}
+          onSave={handleSave}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }
