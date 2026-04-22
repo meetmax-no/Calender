@@ -15,6 +15,7 @@ import { LoadingToast } from "@/components/LoadingToast";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { WeekStats } from "@/components/WeekStats";
+import { AppFooter } from "@/components/AppFooter";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { toDateKey } from "@/lib/date";
@@ -23,7 +24,7 @@ const DEFAULT_BG =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
 
 export default function Home() {
-  const { todos, status, error, addTodo, updateTodo, deleteTodo, toggleTodo } = useTodos();
+  const { todos, status, error, addTodo, updateTodo, deleteTodo, toggleTodo, saveAll } = useTodos();
   const { config, status: configStatus } = useAppConfig();
   const { prefs, setPrefs } = useUserPrefs();
 
@@ -109,6 +110,11 @@ export default function Home() {
 
   const handleDuplicate = async (todo: Todo) => {
     await addTodo(todo);
+  };
+
+  // Lagre mange todos atomisk (for gjentakende oppgaver)
+  const handleSaveRecurring = async (newTodos: Todo[]) => {
+    await saveAll([...todos, ...newTodos]);
   };
 
   return (
@@ -214,6 +220,7 @@ export default function Home() {
           onSave={handleSave}
           onDelete={handleDelete}
           onDuplicate={handleDuplicate}
+          onSaveRecurring={handleSaveRecurring}
         />
       )}
 
@@ -221,6 +228,7 @@ export default function Home() {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         config={config}
+        todos={todos}
         backgroundIndex={prefs.backgroundIndex}
         backgroundMode={prefs.backgroundMode}
         onSelectBackground={(idx) => setPrefs({ backgroundIndex: idx })}
@@ -228,6 +236,7 @@ export default function Home() {
       />
 
       <LoadingToast status={status} configStatus={configStatus} />
+      <AppFooter />
     </div>
   );
 }

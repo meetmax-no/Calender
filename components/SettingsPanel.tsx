@@ -1,13 +1,18 @@
 "use client";
 
-import { X, Check, Shuffle, Calendar as CalendarIcon, Pin } from "lucide-react";
+import { useState } from "react";
+import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download } from "lucide-react";
 import type { AppConfig } from "@/lib/config";
 import type { BackgroundMode } from "@/hooks/useUserPrefs";
+import type { Todo } from "@/lib/types";
+import { getActiveTaskTypes } from "@/hooks/useAppConfig";
+import { generateIcs, downloadIcs } from "@/lib/ics";
 
 interface SettingsPanelProps {
   open: boolean;
   onClose: () => void;
   config: AppConfig;
+  todos: Todo[];
   backgroundIndex: number;
   backgroundMode: BackgroundMode;
   onSelectBackground: (index: number) => void;
@@ -18,14 +23,38 @@ export function SettingsPanel({
   open,
   onClose,
   config,
+  todos,
   backgroundIndex,
   backgroundMode,
   onSelectBackground,
   onSelectMode,
 }: SettingsPanelProps) {
+  const activeTypes = getActiveTaskTypes(config);
+  const [exportTypes, setExportTypes] = useState<Set<string>>(
+    new Set(activeTypes.map((t) => t.key)),
+  );
+
   if (!open) return null;
 
   const backgrounds = config.backgrounds ?? [];
+
+  const toggleExportType = (key: string) => {
+    setExportTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const exportCount = todos.filter((t) => exportTypes.has(t.type)).length;
+
+  const handleExport = () => {
+    const filtered = todos.filter((t) => exportTypes.has(t.type));
+    const ics = generateIcs(filtered, config, "Me & Max ToDo Planner");
+    const date = new Date().toISOString().slice(0, 10);
+    downloadIcs(ics, `memax-todo-${date}.ics`);
+  };
 
   return (
     <div
@@ -51,6 +80,7 @@ export function SettingsPanel({
           </button>
         </div>
 
+        {/* ============== Bakgrunnsbilde ============== */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-white/90">Bakgrunnsbilde</h3>
@@ -59,7 +89,6 @@ export function SettingsPanel({
             </span>
           </div>
 
-          {/* Modus-valg */}
           <div className="grid grid-cols-3 gap-2 mb-4" data-testid="settings-mode-picker">
             <ModeOption
               testId="mode-fixed"
@@ -87,7 +116,6 @@ export function SettingsPanel({
             />
           </div>
 
-          {/* Bilde-galleri */}
           <div className="grid grid-cols-3 gap-2" data-testid="settings-gallery">
             {backgrounds.map((bg, idx) => {
               const isActive = idx === backgroundIndex && backgroundMode === "fixed";
@@ -127,17 +155,68 @@ export function SettingsPanel({
               );
             })}
           </div>
+        </section>
 
-          {backgroundMode !== "fixed" && (
-            <p className="mt-3 text-[11px] text-white/50">
-              Modus "{backgroundMode === "daily" ? "Daglig" : "Tilfeldig"}" aktiv — bildevalg
-              ignoreres. Bytt til "Fast" for å låse et bilde.
-            </p>
-          )}
+        {/* ============== Eksport ============== */}
+        <section className="mt-6 pt-5 border-t border-white/10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-white/90">Eksporter til kalender (.ics)</h3>
+            <span data-testid="export-count" className="text-[11px] text-white/50 tabular-nums">
+              {exportCount} {exportCount === 1 ? "oppgave" : "oppgaver"}
+            </span>
+          </div>
+          <p className="text-[11px] text-white/50 mb-3 leading-relaxed">
+            Velg hvilke task-typer som skal eksporteres. Filen kan abonneres på fra
+            iPhone Kalender, Google Calendar og andre klienter.
+          </p>
+
+          <div
+            className="grid grid-cols-2 gap-1.5 mb-4"
+            data-testid="export-type-picker"
+          >
+            {activeTypes.map((t) => {
+              const isActive = exportTypes.has(t.key);
+              return (
+                <button
+                  key={t.key}
+                  data-testid={`export-type-${t.key}`}
+                  onClick={() => toggleExportType(t.key)}
+                  className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-left transition ${
+                    isActive
+                      ? "border-white/30 bg-white/10"
+                      : "border-white/10 bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  <span
+                    className={`w-3.5 h-3.5 rounded-[4px] border flex items-center justify-center flex-shrink-0 transition ${
+                      isActive ? "border-transparent" : "border-white/30 bg-transparent"
+                    }`}
+                    style={isActive ? { backgroundColor: t.color } : undefined}
+                  >
+                    {isActive && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                  </span>
+                  <span className="text-xs font-medium text-white truncate flex-1">
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            data-testid="export-download-btn"
+            onClick={handleExport}
+            disabled={exportCount === 0}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:bg-white/5 disabled:text-white/40 text-white text-sm font-medium shadow transition"
+          >
+            <Download className="h-4 w-4" />
+            Last ned .ics-fil
+          </button>
         </section>
 
         <div className="mt-6 pt-4 border-t border-white/10 text-[11px] text-white/40">
-          Tips: Rediger listen av bakgrunner i <code className="bg-white/10 px-1 py-0.5 rounded">/public/config.json</code> → <code className="bg-white/10 px-1 py-0.5 rounded">backgrounds</code>.
+          Tips: Rediger task-typer og bakgrunner i{" "}
+          <code className="bg-white/10 px-1 py-0.5 rounded">/public/config.json</code>.
         </div>
       </div>
     </div>

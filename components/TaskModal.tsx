@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Trash2, CheckCircle2, Circle, Loader2, Copy } from "lucide-react";
+import { X, Trash2, CheckCircle2, Circle, Loader2, Copy, Repeat } from "lucide-react";
 import type { AppConfig, TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { TIME_SLOTS } from "@/lib/types";
 import { getActiveTaskTypes } from "@/hooks/useAppConfig";
+import { addDays, addMonths } from "date-fns";
 
 export type ModalMode =
   | { kind: "create"; initialDate?: string; initialSlot?: TimeSlot; initialType?: string }
   | { kind: "edit"; todo: Todo };
+
+type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 
 interface TaskModalProps {
   mode: ModalMode;
@@ -18,10 +21,28 @@ interface TaskModalProps {
   onSave: (todo: Todo) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onDuplicate?: (todo: Todo) => Promise<void>;
+  onSaveRecurring?: (todos: Todo[]) => Promise<void>;
 }
 
 function generateId(): string {
   return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function expandDates(
+  startDate: string,
+  freq: RecurrenceFrequency,
+  count: number,
+): string[] {
+  const base = new Date(startDate + "T12:00:00Z");
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    let d: Date;
+    if (freq === "weekly") d = addDays(base, i * 7);
+    else if (freq === "biweekly") d = addDays(base, i * 14);
+    else d = addMonths(base, i);
+    result.push(d.toISOString().slice(0, 10));
+  }
+  return result;
 }
 
 export function TaskModal({
@@ -31,6 +52,7 @@ export function TaskModal({
   onSave,
   onDelete,
   onDuplicate,
+  onSaveRecurring,
 }: TaskModalProps) {
   const activeTypes = getActiveTaskTypes(config);
   const today = new Date().toISOString().slice(0, 10);
@@ -67,6 +89,9 @@ export function TaskModal({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurFreq, setRecurFreq] = useState<RecurrenceFrequency>("weekly");
+  const [recurCount, setRecurCount] = useState(8);
 
   // Escape lukker modalen
   useEffect(() => {
@@ -84,6 +109,31 @@ export function TaskModal({
     if (!title.trim()) return;
     setSaving(true);
     const now = new Date().toISOString();
+
+    // Gjentakende oppretter - generer N instanser
+    if (mode.kind === "create" && isRecurring && onSaveRecurring) {
+      const dates = expandDates(date, recurFreq, Math.max(1, Math.min(52, recurCount)));
+      const todos: Todo[] = dates.map((d) => ({
+        id: generateId(),
+        title: title.trim(),
+        type,
+        date: d,
+        slot,
+        description: description.trim() || undefined,
+        completed: false,
+        createdAt: now,
+        updatedAt: now,
+      }));
+      try {
+        await onSaveRecurring(todos);
+        onClose();
+      } catch (err) {
+        console.error(err);
+        setSaving(false);
+      }
+      return;
+    }
+
     const todo: Todo =
       mode.kind === "edit"
         ? {
@@ -302,6 +352,71 @@ export function TaskModal({
               {completed ? "Markert som ferdig" : "Marker som ferdig"}
             </span>
           </button>
+
+          {/* Gjentakelse — kun ved opprettelse */}
+          {!isEdit && (
+            <div className="rounded-lg border border-white/10 overflow-hidden">
+              <button
+                data-testid="modal-recurring-toggle"
+                onClick={() => setIsRecurring(!isRecurring)}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-white/5 hover:bg-white/10 transition text-left"
+              >
+                <Repeat
+                  className={`h-4 w-4 flex-shrink-0 ${
+                    isRecurring ? "text-blue-300" : "text-white/50"
+                  }`}
+                />
+                <span className={`text-sm flex-1 ${isRecurring ? "text-blue-200" : "text-white"}`}>
+                  Gjenta oppgaven
+                </span>
+                <span className="text-[10px] text-white/40 uppercase tracking-wider">
+                  {isRecurring ? "På" : "Av"}
+                </span>
+              </button>
+              {isRecurring && (
+                <div className="p-3 bg-blue-500/5 border-t border-blue-400/20 space-y-2.5">
+                  <div className="grid grid-cols-[1fr_80px] gap-2">
+                    <div>
+                      <label className="text-[10px] text-white/60 uppercase tracking-wider font-semibold">
+                        Hyppighet
+                      </label>
+                      <select
+                        data-testid="modal-recur-freq"
+                        value={recurFreq}
+                        onChange={(e) => setRecurFreq(e.target.value as RecurrenceFrequency)}
+                        className="mt-1 w-full bg-white/5 border border-white/15 rounded-md px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-400/60"
+                      >
+                        <option value="weekly">Hver uke</option>
+                        <option value="biweekly">Hver 2. uke</option>
+                        <option value="monthly">Månedlig</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-white/60 uppercase tracking-wider font-semibold">
+                        Antall
+                      </label>
+                      <input
+                        data-testid="modal-recur-count"
+                        type="number"
+                        min={2}
+                        max={52}
+                        value={recurCount}
+                        onChange={(e) =>
+                          setRecurCount(Math.max(2, Math.min(52, parseInt(e.target.value) || 2)))
+                        }
+                        className="mt-1 w-full bg-white/5 border border-white/15 rounded-md px-2 py-1.5 text-sm text-white tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-400/60"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-white/50 leading-tight">
+                    Oppretter {recurCount}{" "}
+                    {recurCount === 1 ? "oppgave" : "oppgaver"} med samme tittel, type og
+                    tidslukke — starter fra datoen over.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer - bytter utseende i slett-bekreftelse */}

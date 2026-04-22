@@ -10,6 +10,7 @@ import {
   ArrowDown,
   ListTodo,
   Plus,
+  Printer,
 } from "lucide-react";
 import type { Todo, TimeSlot } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
@@ -167,7 +168,17 @@ export function ListView({
             Ny oppgave
           </button>
 
-          <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
+          <button
+            data-testid="list-print-btn"
+            onClick={() => window.print()}
+            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition flex items-center gap-1.5 border border-white/15"
+            title="Skriv ut listen"
+          >
+            <Printer className="h-4 w-4" />
+            Skriv ut
+          </button>
+
+          <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5 print:hidden">
             {(["week", "month", "list"] as ViewMode[]).map((m) => (
               <button
                 key={m}

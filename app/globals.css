@@ -60,3 +60,129 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
+
+
+/* ============ Print-stiler for utskrift av listen ============ */
+@media print {
+  @page {
+    margin: 2cm 1.5cm;
+    size: A4;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Skjul alt unntatt liste-tabellen */
+  header,
+  aside,
+  [data-testid="app-footer"],
+  [data-testid="loading-toast"],
+  [data-testid="app-header"],
+  [data-testid="app-sidebar"],
+  [data-testid="list-status-filter"],
+  [data-testid="list-create-new-btn"],
+  [data-testid="list-print-btn"],
+  [data-testid^="view-mode-"],
+  button[data-testid^="list-edit-"],
+  button[data-testid^="list-delete-"] {
+    display: none !important;
+  }
+
+  /* Bakgrunnsbilde */
+  img[alt="Bakgrunn"],
+  .backdrop-blur-xl,
+  .backdrop-blur-md,
+  .backdrop-blur-sm {
+    display: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Fjern overlay */
+  .bg-black\/30 {
+    background: transparent !important;
+  }
+
+  /* Reset flex-layout for enklere utskrift */
+  main {
+    display: block !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  [data-testid="list-view"] {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  /* Toolbar i svart/hvitt */
+  [data-testid="list-view"] > div:first-child {
+    border: none !important;
+    padding: 0 0 1rem 0 !important;
+    background: white !important;
+  }
+
+  [data-testid="list-title"],
+  [data-testid="list-view"] h2 {
+    color: black !important;
+    font-size: 20pt !important;
+  }
+
+  /* Tabell-container */
+  [data-testid="list-view"] > div:last-child {
+    padding: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  [data-testid="list-view"] > div:last-child > div {
+    max-width: 100% !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+
+  /* Tabell */
+  table {
+    color: black !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 10pt !important;
+  }
+
+  thead {
+    background: #f5f5f5 !important;
+  }
+
+  thead th,
+  tbody td {
+    color: black !important;
+    border-bottom: 1px solid #ddd !important;
+  }
+
+  tbody tr {
+    opacity: 1 !important;
+  }
+
+  /* Type-chips blir kantete for print */
+  [data-testid^="list-row-"] span[style*="background"] {
+    border: 1px solid #888 !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Checkbox som tydelige firkanter for utskrift */
+  [data-testid^="list-toggle-"] {
+    border: 2px solid black !important;
+    background: white !important;
+  }
+  [data-testid^="list-toggle-"][class*="emerald"] {
+    background: #333 !important;
+  }
+
+  /* Strikethrough forblir */
+  .line-through {
+    text-decoration: line-through !important;
+    color: #666 !important;
+  }
+}
