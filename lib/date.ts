@@ -3,19 +3,24 @@
 
 import {
   startOfWeek,
+  endOfWeek,
   addDays,
   addWeeks,
   subWeeks,
+  addMonths,
+  subMonths,
   isToday,
   isSameDay,
+  isSameMonth,
   startOfMonth,
   endOfMonth,
+  eachDayOfInterval,
   getDay,
   format,
 } from "date-fns";
 import { nb } from "date-fns/locale";
 
-export { addWeeks, subWeeks, isToday, isSameDay };
+export { addWeeks, subWeeks, addMonths, subMonths, isToday, isSameDay, isSameMonth };
 
 export function toDateKey(date: Date): string {
   return format(date, "yyyy-MM-dd");
@@ -70,4 +75,12 @@ export function getMonthCells(anchor: Date): (Date | null)[] {
     cells.push(new Date(anchor.getFullYear(), anchor.getMonth(), d));
   }
   return cells;
+}
+
+// Fullt måneds-rutenett til Month-view (alltid hele uker, 5-6 rader × 7 dager).
+// Inkluderer "spillover"-dager fra forrige/neste måned.
+export function getMonthViewGrid(anchor: Date): Date[] {
+  const start = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
+  const end = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
+  return eachDayOfInterval({ start, end });
 }

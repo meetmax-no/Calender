@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { MiniCalendar } from "@/components/MiniCalendar";
 import { TaskTypesPanel } from "@/components/TaskTypesPanel";
 import { WeekView } from "@/components/WeekView";
+import { MonthView } from "@/components/MonthView";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
@@ -146,25 +147,19 @@ export default function Home() {
               onTodoToggle={handleTodoToggle}
             />
           )}
-          {viewMode !== "week" && (
-            <div
-              data-testid="view-placeholder"
-              className="flex-1 flex items-center justify-center p-8"
-            >
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 text-white text-center max-w-md">
-                <h3 className="text-lg font-semibold mb-2">Månedsvisning</h3>
-                <p className="text-sm text-white/70">
-                  Kommer i et senere steg. Bytt tilbake til &quot;Uke&quot; for å
-                  se ukevisningen.
-                </p>
-                <button
-                  onClick={() => setViewMode("week")}
-                  className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition"
-                >
-                  Tilbake til uke
-                </button>
-              </div>
-            </div>
+          {viewMode === "month" && (
+            <MonthView
+              anchorDate={anchorDate}
+              onAnchorChange={setAnchorDate}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              config={config}
+              todos={todos}
+              visibleTypes={visibleTypes}
+              onCellClick={handleCellClick}
+              onTodoClick={handleTodoClick}
+              onTodoToggle={handleTodoToggle}
+            />
           )}
 
           {status === "error" && (
