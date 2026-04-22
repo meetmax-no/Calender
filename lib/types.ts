@@ -1,14 +1,14 @@
 // Delte TypeScript-typer for Me & Max ToDo Planner
 
-import type { TaskTypeKey } from "./config";
+import type { TimeSlot } from "./config";
 
-export type TimeSlot = "08-10" | "10-12" | "12-14" | "14-16";
+export type { TimeSlot };
 
 export const TIME_SLOTS: TimeSlot[] = ["08-10", "10-12", "12-14", "14-16"];
 
 export interface Todo {
   id: string;
-  type: TaskTypeKey;
+  type: string; // dynamisk nøkkel fra config.taskTypes (ikke låst til union)
   title: string;
   description?: string;
   date: string; // YYYY-MM-DD

@@ -1,102 +1,52 @@
-// Statisk konfigurasjon - portet fra kalender-repoet src/config.js
-// TASK_TYPES, HOLIDAYS, COMMERCIAL_DAYS, KPI_CARDS
-
-export type TaskTypeKey = "TRACK1" | "TRACK2" | "TRACK3" | "TRACK4" | "ADMIN" | "OTHER";
+// Typer for runtime-config (lastet fra /public/config.json)
 
 export interface TaskTypeConfig {
   label: string;
   icon: string; // lucide-react ikonnavn
-  color: string; // tailwind text-*
-  bg: string; // tailwind bg-*
-  defaultTime: string; // HH:MM
+  color: string; // HEX, f.eks. "#EC4899"
+  defaultSlot: string;
+  active: boolean;
 }
 
-export const TASK_TYPES: Record<TaskTypeKey, TaskTypeConfig> = {
-  TRACK1: { label: "S1-LinkedIn", icon: "Linkedin", color: "text-pink-600", bg: "bg-pink-100", defaultTime: "12:00" },
-  TRACK2: { label: "S2-NewCustomers", icon: "UserPlus", color: "text-blue-600", bg: "bg-blue-100", defaultTime: "12:00" },
-  TRACK3: { label: "S3-OldContacts", icon: "Users", color: "text-sky-600", bg: "bg-sky-100", defaultTime: "12:00" },
-  TRACK4: { label: "S4-TheContract", icon: "FileSignature", color: "text-green-600", bg: "bg-green-100", defaultTime: "12:00" },
-  ADMIN: { label: "Admin", icon: "Lock", color: "text-slate-600", bg: "bg-slate-100", defaultTime: "09:00" },
-  OTHER: { label: "Annet", icon: "Info", color: "text-violet-600", bg: "bg-violet-100", defaultTime: "12:00" },
-};
-
-export const HOLIDAYS: Record<string, string> = {
-  "2026-01-01": "1. Nyttårsdag",
-  "2026-03-29": "Palmesøndag",
-  "2026-04-02": "Skjærtorsdag",
-  "2026-04-03": "Langfredag",
-  "2026-04-05": "1. Påskedag",
-  "2026-04-06": "2. Påskedag",
-  "2026-05-01": "Offentlig høytidsdag",
-  "2026-05-14": "Kristi Himmelfart",
-  "2026-05-17": "Grunnlovsdag",
-  "2026-05-24": "1. Pinsedag",
-  "2026-05-25": "2. Pinsedag",
-  "2026-12-25": "1. Juledag",
-  "2026-12-26": "2. Juledag",
-  "2027-01-01": "1. Nyttårsdag",
-  "2027-03-21": "Palmesøndag",
-  "2027-03-25": "Skjærtorsdag",
-  "2027-03-26": "Langfredag",
-  "2027-03-28": "1. Påskedag",
-  "2027-03-29": "2. Påskedag",
-  "2027-05-01": "Offentlig høytidsdag",
-  "2027-05-06": "Kristi Himmelfart",
-  "2027-05-16": "1. Pinsedag",
-  "2027-05-17": "17. mai / 2. Pinsedag",
-  "2027-12-25": "1. Juledag",
-  "2027-12-26": "2. Juledag",
-};
-
-export const COMMERCIAL_DAYS: Record<string, string> = {
-  "2026-02-08": "Morsdag",
-  "2026-02-14": "Valentines Day",
-  "2026-02-15": "Fastelavn",
-  "2026-02-16": "Vinterferie",
-  "2026-02-23": "Vinterferie",
-  "2026-10-31": "Halloween",
-  "2026-11-27": "Black Friday",
-  "2026-11-30": "Cyber Monday",
-};
-
-export const CAMPAIGN_DEFAULTS = {
-  dailyBudget: 500,
-  totalBudget: 15000,
-  BudgetTargetCPA: 50,
-  RunningTargetCPA: 30,
-};
-
-export interface KpiCard {
-  key: string;
-  title: string;
-  unit?: string;
-  decimals?: number;
-  isCurrency?: boolean;
-  isReverse?: boolean;
+export interface PaletteColor {
+  name: string;
+  hex: string;
 }
 
-export const KPI_CARDS: KpiCard[] = [
-  { key: "reach", title: "Reach" },
-  { key: "impressions", title: "Impressions" },
-  { key: "clicksAll", title: "Klikk (Alle)" },
-  { key: "ctrAll", title: "CTR (Alle)", unit: "%", decimals: 2 },
-  { key: "spend", title: "Totalt Forbruk", isCurrency: true, isReverse: true },
-  { key: "frequency", title: "Frekvens", decimals: 2, isReverse: true },
-  { key: "purchases", title: "Antall Salg" },
-  { key: "revenue", title: "Inntekt (Salg)", isCurrency: true },
-  { key: "linkClicks", title: "Link Clicks" },
-  { key: "landingPageViews", title: "Landing Page Views" },
-  { key: "ctrLink", title: "CTR (Link)", unit: "%", decimals: 2 },
-  { key: "cpcLink", title: "CPC (Link)", unit: " kr", decimals: 2, isReverse: true },
-  { key: "atc", title: "Add to Cart (Antall)" },
-  { key: "atcValue", title: "ATC Verdi", isCurrency: true },
-  { key: "roas", title: "ROAS", unit: "x", decimals: 2 },
-  { key: "cpa", title: "Cost Per Purchase", isCurrency: true, isReverse: true },
-];
+export interface AppConfig {
+  version: string;
+  updatedAt: string;
+  taskTypes: Record<string, TaskTypeConfig>;
+  palette: PaletteColor[];
+  holidays: Record<string, string>;
+  commercialDays: Record<string, string>;
+}
 
+// Statiske UI-strenger (ikke brukerkonfigurerbart)
 export const MONTH_NAMES = [
   "Januar", "Februar", "Mars", "April", "Mai", "Juni",
   "Juli", "August", "September", "Oktober", "November", "Desember",
 ];
 
 export const WEEKDAY_NAMES_SHORT = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
+
+export const TIME_SLOT_LABELS = ["08-10", "10-12", "12-14", "14-16"] as const;
+export type TimeSlot = typeof TIME_SLOT_LABELS[number];
+
+// Fallback-config hvis /config.json ikke er tilgjengelig
+export const FALLBACK_CONFIG: AppConfig = {
+  version: "fallback",
+  updatedAt: "",
+  taskTypes: {
+    OTHER: {
+      label: "Annet",
+      icon: "Info",
+      color: "#A855F7",
+      defaultSlot: "12-14",
+      active: true,
+    },
+  },
+  palette: [],
+  holidays: {},
+  commercialDays: {},
+};
