@@ -101,6 +101,8 @@ export default function Home() {
     const existing = todos.find((t) => t.id === todo.id);
     if (existing) await updateTodo(todo.id, todo);
     else await addTodo(todo);
+    // Sørg for at typen er synlig, slik at ny/oppdatert oppgave alltid vises
+    setVisibleTypes((prev) => (prev.has(todo.type) ? prev : new Set(prev).add(todo.type)));
   };
 
   const handleDelete = async (id: string) => {
@@ -109,11 +111,16 @@ export default function Home() {
 
   const handleDuplicate = async (todo: Todo) => {
     await addTodo(todo);
+    setVisibleTypes((prev) => (prev.has(todo.type) ? prev : new Set(prev).add(todo.type)));
   };
 
   // Lagre mange todos atomisk (for gjentakende oppgaver)
   const handleSaveRecurring = async (newTodos: Todo[]) => {
     await saveAll([...todos, ...newTodos]);
+    const firstType = newTodos[0]?.type;
+    if (firstType) {
+      setVisibleTypes((prev) => (prev.has(firstType) ? prev : new Set(prev).add(firstType)));
+    }
   };
 
   return (
