@@ -116,3 +116,30 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 3. Koble på create/edit/delete UI
 4. Implementer ekte datologikk
 5. Test end-to-end lokalt → push til GitHub → Vercel deploy
+
+
+## 🔧 GitHub-sync workflow (KRITISK for nye agenter)
+
+Workspacen kommer IKKE med git remote satt opp by default — men det kan og skal settes opp manuelt. Brukeren forventer å kunne si "pull fra GitHub" og få lastet inn siste versjon av filer.
+
+**Repo-URL:** `https://github.com/meetmax-no/Calender.git` (main branch)
+
+### Første gang i ny sesjon — sett opp remote:
+```bash
+cd /app
+git remote add origin https://github.com/meetmax-no/Calender.git
+git fetch origin main
+```
+
+### Pull-kommandoer brukeren kan be om:
+
+| Bruker sier | Agent kjører |
+|---|---|
+| "Pull alle filer fra GitHub" | `git fetch origin main && git reset --hard origin/main` |
+| "Pull `<filsti>` fra GitHub" | `git fetch origin main && git checkout origin/main -- <filsti>` |
+| "Hva er forskjell fra GitHub?" | `git diff HEAD origin/main` |
+
+**VIKTIG:** Brukeren redigerer ofte `public/config.json` direkte på GitHub (bakgrunnsbilder, helligdager, taskTypes). Sjekk alltid med bruker om du skal pulle før du endrer config-filen i en ny sesjon.
+
+### Push tilbake til GitHub:
+Brukeren bruker Emergent sin "Save to GitHub"-funksjon i chat-inputen. Agenten skal IKKE bruke `git push`.
