@@ -273,47 +273,57 @@ Men det er framtids-Ko|Do sitt problem. 😄
 
 ## 10. Implementerings-rekkefølge (når vi gjør hugget)
 
-**Fase A — Multi-client foundation** (~45 min)
-1. Flytt config, lag clients-mappe
-2. Les env-var i useAppConfig
-3. Test lokalt med to ulike configs
+_Revidert rekkefølge: Migrering → Multi-client + Branding → Auth. Dette gir trygg base først, bygger på stabil arkitektur, og legger auth på toppen når alt annet er verifisert._
 
-**Fase B — Branding via env** (~20 min)
-4. BRAND_NAME i AppHeader
-5. (Valgfritt) ACCENT i Tailwind via CSS-var
+**Fase A — Migrering JSONBin → Vercel KV** (~45 min)
+_Gjøres først så vi har en rask og stabil base._
+1. Opprett Vercel KV-store for Ko|Do-prosjektet
+2. Installer `@vercel/kv`
+3. Skriv om `/app/api/todos/route.ts` til KV
+4. Lag engangs-migrerings-skript: `scripts/migrate-jsonbin-to-kv.ts`
+5. Kjør migrering for Ko|Do-instansen
+6. Verifiser data-integritet mot JSONBin (antall records + stikkprøver)
+7. Deploy + test i produksjon (Ko|Do-instansen)
+8. Behold JSONBin som backup i 1 uke før sletting
 
-**Fase C — Migrering JSONBin → Vercel KV** (~45 min)
-6. Installer `@vercel/kv`
-7. Skriv om `/app/api/todos/route.ts` til å bruke KV i stedet for JSONBin fetch
-8. Lag engangs-migrerings-skript: `scripts/migrate-jsonbin-to-kv.ts`
-   - Leser fra gammel JSONBin
-   - Skriver til KV
-   - Logger antall migrerte records
-9. Kjør migrering for Ko|Do-instansen
-10. Verifiser at data er identisk
-11. Slett JSONBin-referanser fra `.env.local` og `useTodos.ts`
+**Fase B — Multi-client foundation + branding** (~60 min)
+_Gjøres sammen fordi de deler samme struktur: env-driven config._
+9. Flytt `config.json` → `public/clients/default.json`
+10. Lag `public/clients/_template.json` (mal for nye kunder)
+11. Oppdater `useAppConfig.ts` til å lese `NEXT_PUBLIC_CLIENT_CONFIG`
+12. Legg til `NEXT_PUBLIC_BRAND_NAME` i `AppHeader`
+13. (Valgfritt) `NEXT_PUBLIC_BRAND_ACCENT` via Tailwind CSS-var
+14. Test lokalt med to ulike configs + brandnavn
+15. Deploy Ko|Do med `NEXT_PUBLIC_CLIENT_CONFIG=default`
 
-**Fase D — Auth** (~90 min)
-12. Installer next-auth
-13. Sett opp route + providers
-14. Whitelist-logikk
-15. AuthGate-komponent
-16. Login-side + logout-knapp
-17. Feature flag på/av
+**Fase C — Google Auth** (~90 min)
+_Legges på når datalaget og config-strukturen er stabil._
+16. Installer `next-auth@beta`
+17. Sett opp `/app/api/auth/[...nextauth]/route.ts` med Google Provider
+18. Whitelist-logikk via `ALLOWED_EMAILS`
+19. Feature flag: `NEXT_PUBLIC_AUTH_ENABLED` (true/false)
+20. `AuthGate`-komponent som wrapper hele appen
+21. Login-side + logout-knapp i header
+22. Test: whitelistet e-post → inn, annen e-post → avvises
+23. "Emergency bypass"-env-var (`AUTH_BYPASS_KEY`) for nødstilfelle
 
-**Fase E — Dokumentasjon + testing** (~30 min)
-18. Skriv DEPLOY_NEW_CLIENT.md (commitet sjekkliste)
-19. Skriv `_template.json`
-20. End-to-end test lokalt
+**Fase D — Dokumentasjon + sjekkliste** (~20 min)
+24. Skriv `DEPLOY_NEW_CLIENT.md` (commitet sjekkliste i repo)
+25. Oppdater `README.md` med nye env-vars
+26. `.env.local.example` med alle vars og kommentarer
 
-**Fase F — Deploy første kunde (deg selv)** (~20 min)
-21. Koble Vercel KV til Ko|Do-prosjektet
-22. Sett opp Ko|Do-instans med alle env-vars
-23. Test Google-login
-24. Verifiser KV-data og respons-tid
-25. Deaktiver/slett gammel JSONBin når alt er verifisert
+**Fase E — Første kunde-deploy (deg selv, full runde)** (~15 min)
+27. Verifiser alt på Ko|Do-instansen en siste gang
+28. Aktiver auth (`NEXT_PUBLIC_AUTH_ENABLED=true`)
+29. Test innlogging med din egen Google-konto
+30. Slett JSONBin permanent
 
-**Total: ~4–4,5 timer i ett hugg.**
+**Total: ~3,5–4 timer i ett hugg.**
+
+### Hvorfor denne rekkefølgen?
+- **Migrering først** = rask app fra første minutt; alt annet arbeid skjer mot ferdig datalag
+- **Multi-client + branding sammen** = begge handler om "lese env-var, endre oppførsel" — ingen grunn til å splitte
+- **Auth sist** = minst risiko for å låse oss ute av appen under utvikling, og vi vet at resten funker før vi gater det
 
 ---
 
