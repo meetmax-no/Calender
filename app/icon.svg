@@ -1,0 +1,29 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded square background, blå gradient for dybde -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+
+  <!-- Kalender-topplinje (header-strip) -->
+  <rect x="10" y="16" width="44" height="6" rx="1.5" fill="white" fill-opacity="0.25"/>
+
+  <!-- To ringer (klassiske kalender-perm-ringer) -->
+  <rect x="20" y="10" width="3" height="10" rx="1.5" fill="white"/>
+  <rect x="41" y="10" width="3" height="10" rx="1.5" fill="white"/>
+
+  <!-- K · D monogram -->
+  <text
+    x="32" y="48"
+    text-anchor="middle"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="22"
+    font-weight="700"
+    letter-spacing="-0.5"
+    fill="white"
+  >K·D</text>
+</svg>
