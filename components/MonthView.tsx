@@ -14,6 +14,7 @@ import {
   addMonths,
   subMonths,
 } from "@/lib/date";
+import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -25,6 +26,9 @@ interface MonthViewProps {
   config: AppConfig;
   todos: Todo[];
   visibleTypes: Set<string>;
+  statusFilter: StatusFilter;
+  onStatusFilterChange: (next: StatusFilter) => void;
+  statusCounts: { all: number; open: number; done: number };
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
@@ -41,6 +45,9 @@ export function MonthView({
   config,
   todos,
   visibleTypes,
+  statusFilter,
+  onStatusFilterChange,
+  statusCounts,
   onCellClick,
   onTodoClick,
   onTodoToggle,
@@ -48,7 +55,12 @@ export function MonthView({
   const days = getMonthViewGrid(anchorDate);
   const monthLabel = formatMonthTitle(anchorDate);
 
-  const visibleTodos = todos.filter((t) => visibleTypes.has(t.type));
+  const visibleTodos = todos.filter((t) => {
+    if (!visibleTypes.has(t.type)) return false;
+    if (statusFilter === "open" && t.completed) return false;
+    if (statusFilter === "done" && !t.completed) return false;
+    return true;
+  });
   const todosByDate = new Map<string, Todo[]>();
   for (const t of visibleTodos) {
     const list = todosByDate.get(t.date) ?? [];
@@ -104,21 +116,30 @@ export function MonthView({
           </h2>
         </div>
 
-        <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
-          {(["week", "month", "list"] as ViewMode[]).map((m) => (
-            <button
-              key={m}
-              data-testid={`view-mode-${m}`}
-              onClick={() => onViewModeChange(m)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition ${
-                viewMode === m
-                  ? "bg-white/20 text-white"
-                  : "text-white/60 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <StatusFilterBar
+            value={statusFilter}
+            onChange={onStatusFilterChange}
+            counts={statusCounts}
+            testIdPrefix="month-status-filter"
+          />
+
+          <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
+            {(["week", "month", "list"] as ViewMode[]).map((m) => (
+              <button
+                key={m}
+                data-testid={`view-mode-${m}`}
+                onClick={() => onViewModeChange(m)}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition ${
+                  viewMode === m
+                    ? "bg-white/20 text-white"
+                    : "text-white/60 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -15,6 +15,7 @@ import { LoadingToast } from "@/components/LoadingToast";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { WeekStats } from "@/components/WeekStats";
+import type { StatusFilter } from "@/components/StatusFilterBar";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { toDateKey } from "@/lib/date";
@@ -30,6 +31,7 @@ export default function Home() {
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month" | "list">("week");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const hasInitializedFilter = useRef(false);
@@ -123,6 +125,16 @@ export default function Home() {
     }
   };
 
+  // Tellere for statusfilter (basert på synlige typer)
+  const statusCounts = useMemo(() => {
+    const visible = todos.filter((t) => visibleTypes.has(t.type));
+    return {
+      all: visible.length,
+      open: visible.filter((t) => !t.completed).length,
+      done: visible.filter((t) => t.completed).length,
+    };
+  }, [todos, visibleTypes]);
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <Image
@@ -181,6 +193,9 @@ export default function Home() {
               config={config}
               todos={todos}
               visibleTypes={visibleTypes}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              statusCounts={statusCounts}
               onCellClick={handleCellClick}
               onTodoClick={handleTodoClick}
               onTodoToggle={handleTodoToggle}
@@ -195,6 +210,9 @@ export default function Home() {
               config={config}
               todos={todos}
               visibleTypes={visibleTypes}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              statusCounts={statusCounts}
               onCellClick={handleCellClick}
               onTodoClick={handleTodoClick}
               onTodoToggle={handleTodoToggle}
@@ -207,6 +225,9 @@ export default function Home() {
               config={config}
               todos={todos}
               visibleTypes={visibleTypes}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              statusCounts={statusCounts}
               onTodoEdit={handleTodoClick}
               onTodoToggle={handleTodoToggle}
               onTodoDelete={handleDelete}

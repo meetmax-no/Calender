@@ -16,6 +16,7 @@ import {
 } from "@/lib/date";
 import type { Todo } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
+import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -27,6 +28,9 @@ interface WeekViewProps {
   config: AppConfig;
   todos: Todo[];
   visibleTypes: Set<string>;
+  statusFilter: StatusFilter;
+  onStatusFilterChange: (next: StatusFilter) => void;
+  statusCounts: { all: number; open: number; done: number };
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
@@ -40,6 +44,9 @@ export function WeekView({
   config,
   todos,
   visibleTypes,
+  statusFilter,
+  onStatusFilterChange,
+  statusCounts,
   onCellClick,
   onTodoClick,
   onTodoToggle,
@@ -52,8 +59,13 @@ export function WeekView({
   const goPrev = () => onAnchorChange(subWeeks(anchorDate, 1));
   const goNext = () => onAnchorChange(addWeeks(anchorDate, 1));
 
-  // Filtrer todos til synlige typer og denne ukens datoer
-  const visibleTodos = todos.filter((t) => visibleTypes.has(t.type));
+  // Filtrer todos til synlige typer + status
+  const visibleTodos = todos.filter((t) => {
+    if (!visibleTypes.has(t.type)) return false;
+    if (statusFilter === "open" && t.completed) return false;
+    if (statusFilter === "done" && !t.completed) return false;
+    return true;
+  });
 
   const getTodosForCell = (date: Date, slot: TimeSlot): Todo[] => {
     const key = toDateKey(date);
@@ -107,21 +119,30 @@ export function WeekView({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
-          {(["week", "month", "list"] as ViewMode[]).map((m) => (
-            <button
-              key={m}
-              data-testid={`view-mode-${m}`}
-              onClick={() => onViewModeChange(m)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition ${
-                viewMode === m
-                  ? "bg-white/20 text-white"
-                  : "text-white/60 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <StatusFilterBar
+            value={statusFilter}
+            onChange={onStatusFilterChange}
+            counts={statusCounts}
+            testIdPrefix="week-status-filter"
+          />
+
+          <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5">
+            {(["week", "month", "list"] as ViewMode[]).map((m) => (
+              <button
+                key={m}
+                data-testid={`view-mode-${m}`}
+                onClick={() => onViewModeChange(m)}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition ${
+                  viewMode === m
+                    ? "bg-white/20 text-white"
+                    : "text-white/60 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -17,9 +17,9 @@ import type { AppConfig } from "@/lib/config";
 import { getISOWeek, toDateKey } from "@/lib/date";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
+import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 
 type ViewMode = "week" | "month" | "list";
-type StatusFilter = "all" | "open" | "done";
 type SortKey = "date" | "type" | "title" | "completed";
 type SortDir = "asc" | "desc";
 
@@ -29,6 +29,9 @@ interface ListViewProps {
   config: AppConfig;
   todos: Todo[];
   visibleTypes: Set<string>;
+  statusFilter: StatusFilter;
+  onStatusFilterChange: (next: StatusFilter) => void;
+  statusCounts: { all: number; open: number; done: number };
   onTodoEdit: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
   onTodoDelete: (id: string) => void;
@@ -41,12 +44,14 @@ export function ListView({
   config,
   todos,
   visibleTypes,
+  statusFilter,
+  onStatusFilterChange,
+  statusCounts,
   onTodoEdit,
   onTodoToggle,
   onTodoDelete,
   onCreateNew,
 }: ListViewProps) {
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -59,16 +64,6 @@ export function ListView({
       return true;
     });
   }, [todos, visibleTypes, statusFilter]);
-
-  // Tellere for filter-badges
-  const counts = useMemo(() => {
-    const visible = todos.filter((t) => visibleTypes.has(t.type));
-    return {
-      all: visible.length,
-      open: visible.filter((t) => !t.completed).length,
-      done: visible.filter((t) => t.completed).length,
-    };
-  }, [todos, visibleTypes]);
 
   // Sortering
   const sorted = useMemo(() => {
@@ -128,32 +123,12 @@ export function ListView({
           </h2>
 
           {/* Status-filter */}
-          <div
-            className="flex items-center gap-0.5 bg-white/5 border border-white/15 rounded-lg p-0.5 ml-3"
-            data-testid="list-status-filter"
-          >
-            <FilterPill
-              testId="list-filter-all"
-              active={statusFilter === "all"}
-              onClick={() => setStatusFilter("all")}
-              label="Alle"
-              count={counts.all}
-            />
-            <FilterPill
-              testId="list-filter-open"
-              active={statusFilter === "open"}
-              onClick={() => setStatusFilter("open")}
-              label="Åpne"
-              count={counts.open}
-              accent="amber"
-            />
-            <FilterPill
-              testId="list-filter-done"
-              active={statusFilter === "done"}
-              onClick={() => setStatusFilter("done")}
-              label="Ferdig"
-              count={counts.done}
-              accent="emerald"
+          <div className="ml-3">
+            <StatusFilterBar
+              value={statusFilter}
+              onChange={onStatusFilterChange}
+              counts={statusCounts}
+              testIdPrefix="list-status-filter"
             />
           </div>
         </div>
@@ -386,42 +361,6 @@ export function ListView({
 }
 
 // ================== Subcomponents ==================
-
-interface FilterPillProps {
-  testId: string;
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  count: number;
-  accent?: "amber" | "emerald";
-}
-
-function FilterPill({ testId, active, onClick, label, count, accent }: FilterPillProps) {
-  const activeBg =
-    accent === "emerald"
-      ? "bg-emerald-500/25 text-emerald-100"
-      : accent === "amber"
-        ? "bg-amber-500/25 text-amber-100"
-        : "bg-white/20 text-white";
-  return (
-    <button
-      data-testid={testId}
-      onClick={onClick}
-      className={`px-3 py-1 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
-        active ? activeBg : "text-white/60 hover:text-white hover:bg-white/10"
-      }`}
-    >
-      {label}
-      <span
-        className={`text-[10px] font-semibold tabular-nums px-1.5 rounded-full ${
-          active ? "bg-black/20" : "bg-white/10 text-white/60"
-        }`}
-      >
-        {count}
-      </span>
-    </button>
-  );
-}
 
 interface HeaderCellProps {
   testId: string;
