@@ -46,16 +46,46 @@
     }
   },
   "palette": [
-    { "name": "Rosa", "hex": "#EC4899" },
-    { "name": "Rose", "hex": "#F43F5E" },
-    { "name": "Oransje", "hex": "#F97316" },
-    { "name": "Gul", "hex": "#F59E0B" },
-    { "name": "Emerald", "hex": "#10B981" },
-    { "name": "Teal", "hex": "#14B8A6" },
-    { "name": "Sky", "hex": "#0EA5E9" },
-    { "name": "Blå", "hex": "#3B82F6" },
-    { "name": "Indigo", "hex": "#6366F1" },
-    { "name": "Lilla", "hex": "#A855F7" }
+    {
+      "name": "Rosa",
+      "hex": "#EC4899"
+    },
+    {
+      "name": "Rose",
+      "hex": "#F43F5E"
+    },
+    {
+      "name": "Oransje",
+      "hex": "#F97316"
+    },
+    {
+      "name": "Gul",
+      "hex": "#F59E0B"
+    },
+    {
+      "name": "Emerald",
+      "hex": "#10B981"
+    },
+    {
+      "name": "Teal",
+      "hex": "#14B8A6"
+    },
+    {
+      "name": "Sky",
+      "hex": "#0EA5E9"
+    },
+    {
+      "name": "Blå",
+      "hex": "#3B82F6"
+    },
+    {
+      "name": "Indigo",
+      "hex": "#6366F1"
+    },
+    {
+      "name": "Lilla",
+      "hex": "#A855F7"
+    }
   ],
   "holidays": {
     "2026-01-01": "1. Nyttårsdag",
@@ -95,14 +125,41 @@
     "2026-11-30": "Cyber Monday"
   },
   "backgrounds": [
-    { "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop", "name": "Fjell ved soloppgang" },
-    { "url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2070&auto=format&fit=crop", "name": "Skog om våren" },
-    { "url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2070&auto=format&fit=crop", "name": "Tåkete fjellrekke" },
-    { "url": "https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?q=80&w=2070&auto=format&fit=crop", "name": "Snødekte topper" },
-    { "url": "https://images.unsplash.com/photo-1506260408121-e353d10b87c7?q=80&w=2070&auto=format&fit=crop", "name": "Norsk fjord" },
-    { "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop", "name": "Fjellvann" },
-    { "url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop", "name": "Stjernehimmel" },
-    { "url": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=2070&auto=format&fit=crop", "name": "Nordlys" },
-    { "url": "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?q=80&w=2070&auto=format&fit=crop", "name": "Ørken om kvelden" }
+    {
+      "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop",
+      "name": "Fjell ved soloppgang"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1509529711801-deac231925ac?q=80&w=2070&auto=format&fit=crop",
+      "name": "Nordlys - Norge"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1681300091697-f8d16d5868a1?q=80&w=2070&auto=format&fit=crop",
+      "name": "Badehus - Danmark"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1618889128235-93807ca6b114?q=80&w=2070&auto=format&fit=crop",
+      "name": "Buddha på rekke - What Po, Thailand "
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1562707786-7d2b807961c4?q=80&w=2070&auto=format&fit=crop",
+      "name": "Sushi Toro - Tokyo, Japan"
+    },
+    {
+      "url": "https://plus.unsplash.com/premium_photo-1691414363231-836e2e1bf0ed?q=80&w=2070&auto=format&fit=crop",
+      "name": "Nyhavn, København"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop",
+      "name": "Stjernehimmel"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1701762292610-3323efd62273?q=80&w=2070&auto=format&fit=crop",
+      "name": "Tokyo by Night"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1593839154339-377e24b3ba32?q=80&w=2070&auto=format&fit=crop",
+      "name": "Tokyo City"
+    }
   ]
 }
