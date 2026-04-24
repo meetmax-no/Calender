@@ -35,7 +35,7 @@ Hver Vercel-deploy leser sine egne env-vars og laster:
 | Ressurs | Hva | Hvor opprettes |
 |---|---|---|
 | **Vercel-prosjekt** | Egen deployment med kunde-spesifikk URL | vercel.com |
-| **JSONBin** | Oppgave-lagring (ToDoEvents) | jsonbin.io |
+| **Vercel KV-store** | Oppgave-lagring (ToDoEvents) — ~20 ms reads/writes | Vercel Dashboard |
 | **Google OAuth whitelist** | Liste med e-poster som får logge inn | Vercel env |
 | **Client config** | JSON-fil i repo under `/public/clients/` | GitHub-commit |
 | **(Evt.) custom domene** | planner.kunde.no i stedet for vercel.app | Vercel + DNS |
@@ -80,8 +80,10 @@ Dette er **alle** env-vars et kunde-prosjekt trenger. Legg inn i Vercel Dashboar
 | Variabel | Eksempel | Påkrevd? | Forklaring |
 |---|---|---|---|
 | `NEXT_PUBLIC_CLIENT_CONFIG` | `acme` | ✅ | Navn på config-fil (uten .json) under `/public/clients/` |
-| `JSONBIN_MASTER_KEY` | `$2a$10$...` | ✅ | Kundens egen JSONBin master-key |
-| `JSONBIN_BIN_ID` | `65abc123...` | ✅ | Kundens egen bin-ID for ToDoEvents |
+| `KV_URL` | `redis://default:xxx@...` | ✅ | Vercel KV connection string (auto-injiseres ved KV-kobling) |
+| `KV_REST_API_URL` | `https://...upstash.io` | ✅ | Auto-injiseres ved KV-kobling |
+| `KV_REST_API_TOKEN` | `AX...` | ✅ | Auto-injiseres ved KV-kobling |
+| `KV_REST_API_READ_ONLY_TOKEN` | `AY...` | ✅ | Auto-injiseres ved KV-kobling |
 | `NEXT_PUBLIC_AUTH_ENABLED` | `true` | ✅ | `true` = Google login aktiv |
 | `GOOGLE_CLIENT_ID` | `xxx.apps.googleusercontent.com` | ✅ hvis auth | Fra Google Cloud Console |
 | `GOOGLE_CLIENT_SECRET` | `GOCSPX-...` | ✅ hvis auth | Fra Google Cloud Console |
@@ -91,22 +93,23 @@ Dette er **alle** env-vars et kunde-prosjekt trenger. Legg inn i Vercel Dashboar
 | `NEXT_PUBLIC_BRAND_NAME` | `Acme Planner` | ⚪ | Navn i header. Default: "KoDo Planner" |
 | `NEXT_PUBLIC_BRAND_ACCENT` | `#E85D04` | ⚪ | Aksent-hex. Default: blå |
 
+> 💡 **Tips:** De fire `KV_*`-variablene settes automatisk når du kobler en KV-store til Vercel-prosjektet. Du trenger ikke kopiere dem manuelt.
+
 ---
 
 ## 4. Onboarding av ny kunde — 7 steg
 
 **Antatt tid: 20–30 min per kunde.**
 
-### Steg 1 — JSONBin.io (5 min)
-1. Logg inn på [jsonbin.io](https://jsonbin.io) (egen konto eller delt via deg)
-2. **Create new bin** → lim inn starter-JSON:
-   ```json
-   { "ToDoEvents": [] }
-   ```
-3. Lagre. Noter:
-   - `BIN_ID` (fra URL-en)
-   - `MASTER_KEY` (fra API Keys-seksjonen)
-4. _(Valgfritt)_ Sett bin til "private"
+### Steg 1 — Vercel KV-store (3 min)
+1. Vercel Dashboard → **Storage** → **Create Database** → velg **KV**
+2. Navn: `planner-<kunde>-kv`
+3. Region: velg nærmest kundens brukere (f.eks. `arn1` for Norden)
+4. Klikk **Create**
+5. **Connect Project** → velg kundens Vercel-prosjekt (gjøres i steg 4, men kan kobles nå hvis prosjektet finnes)
+6. Under **Quickstart** → kopier JSON-fragmentet med `KV_*`-variablene _(kun hvis du IKKE har auto-koblet prosjektet — ellers injiseres de automatisk)_
+
+> 💡 Første gang du oppretter en KV-store får du et valg om Upstash-basert eller native. Velg **Upstash-basert** (default). Det er samme produktet under panseret.
 
 ### Steg 2 — Google Cloud Console (5 min, kun første gang per kunde)
 1. Gå til [console.cloud.google.com](https://console.cloud.google.com)
@@ -136,8 +139,9 @@ _Tips: Hvis kunder er Google Workspace-kunder, kan OAuth-apper begrenses til der
 2. Velg samme GitHub-repo `meetmax-no/Calender`
 3. Project Name: `planner-<kunde>`
 4. Ikke deploy enda — gå til **Environment Variables** først
-5. Lim inn alle env-vars fra listen i seksjon 3
+5. Lim inn alle env-vars fra listen i seksjon 3 (EKSKLUSIV `KV_*`-variablene)
 6. Klikk **Deploy**
+7. Etter første deploy: Gå til **Storage**-fanen → koble KV-storen fra steg 1 til prosjektet. Da injiseres `KV_*` automatisk og prosjektet re-deployer.
 
 ### Steg 5 — Bekreft deploy (2 min)
 1. Åpne `https://planner-<kunde>.vercel.app`
@@ -146,8 +150,9 @@ _Tips: Hvis kunder er Google Workspace-kunder, kan OAuth-apper begrenses til der
    - [ ] Login-skjerm dukker opp (hvis auth aktiv)
    - [ ] Logg inn med whitelistet e-post → får tilgang
    - [ ] Prøv ikke-whitelistet e-post → avslås
-   - [ ] Opprett en test-oppgave → verifiser den dukker opp i JSONBin
+   - [ ] Opprett en test-oppgave → verifiser den lagres i KV (sjekk i Vercel → Storage → KV → Data Browser)
    - [ ] Slett test-oppgaven
+   - [ ] Mål response-tid (bør være < 100 ms, ofte ~20 ms)
 
 ### Steg 6 — Custom domene (valgfritt, 5 min + DNS-venting)
 1. Vercel → Project → Settings → Domains → Add
@@ -189,15 +194,16 @@ _Tips: Hvis kunder er Google Workspace-kunder, kan OAuth-apper begrenses til der
 
 ### ✅ GJØR
 - Hold `clients/<kunde>.json` i git slik at det er versjonert
-- Bruk samme `JSONBIN_MASTER_KEY` på tvers av prosjekter _bare hvis_ kunden er komfortabel med at du har tilgang
 - Roter `NEXTAUTH_SECRET` minst én gang per år
 - Legg til backup-export via "Last ned JSON" i Settings-panelet for hver kunde
+- Eksporter KV-data som backup før store endringer (Vercel KV → Data Browser → Export)
 
 ### ❌ IKKE GJØR
 - **Aldri** hardkod kunde-spesifikke verdier i koden — alltid via env eller client-config
-- **Aldri** del samme JSONBin mellom kunder — data vil lekke
+- **Aldri** del samme KV-store mellom kunder — data vil lekke
 - **Aldri** pusje `.env.local` til GitHub
 - **Ikke** bruk samme Google OAuth-credentials på tvers av kunder (sikkerhet + isolasjon)
+- **Ikke** bruk Edge Config som DB — den er for feature-flags, ikke CRUD-data
 
 ---
 
@@ -206,7 +212,7 @@ _Tips: Hvis kunder er Google Workspace-kunder, kan OAuth-apper begrenses til der
 | Tjeneste | Plan | Pris/mnd |
 |---|---|---|
 | Vercel Hobby | Gratis | 0 kr |
-| JSONBin.io | Free tier (10k requests/mnd) | 0 kr |
+| Vercel KV (Upstash) | Free tier (30k kommandoer/mnd) | 0 kr |
 | Google OAuth | Gratis for < 100 brukere | 0 kr |
 | Custom domene | Hvis kunden har det | 0 kr (de betaler) |
 | **Totalt per kunde** | | **0 kr** |
@@ -215,6 +221,7 @@ Vercel Pro ($20/mnd) trengs først når:
 - Du har > 100 deploys per dag totalt
 - Du trenger password-protected preview-URL-er
 - Du vil ha kortere build-køer
+- Du må over 30k KV-kommandoer/mnd per kunde (_tilsvarer ~500 oppgaveendringer/dag vedvarende_)
 
 ---
 
@@ -224,7 +231,7 @@ Modellen fungerer fint opp til **~10–15 kunder**. Over det blir manuelt oppset
 
 **Når du skal over 15 kunder:** Vurder migrering til ekte multi-tenant:
 - Én Vercel-deploy (`planner.kodoconsult.no`)
-- Supabase eller MongoDB Atlas i stedet for JSONBin
+- Én felles Vercel Postgres (Neon) eller Supabase-database
 - Kundene separeres via `workspaceId` i database
 - Selvbetjent onboarding
 - Mulighet for Stripe-abonnement
@@ -243,18 +250,24 @@ Men det er framtids-Ko|Do sitt problem. 😄
 - `/components/AuthGate.tsx` (wrapper som sjekker session)
 - `/components/LoginButton.tsx`
 - `/lib/auth.ts`
+- `/lib/kv.ts` (tynn wrapper rundt @vercel/kv)
+- `/scripts/migrate-jsonbin-to-kv.ts` (engangs-migrering)
 - `/DEPLOY_NEW_CLIENT.md` (sjekkliste, commitet)
 - `.env.local.example` (mal for deg selv)
 
 ### Filer som endres
 - `/hooks/useAppConfig.ts` — leser env for config-filnavn
+- `/app/api/todos/route.ts` — bytter JSONBin-fetch til `kv.get/set`
+- `/hooks/useTodos.ts` — ingen endring (fortsatt samme API-endepunkt)
 - `/app/layout.tsx` — wrap med SessionProvider + AuthGate
 - `/app/page.tsx` — sjekker auth-status
 - `/components/AppHeader.tsx` — login/logout-knapp + brand-navn
 - `/components/SettingsPanel.tsx` — vis innlogget bruker
+- `/package.json` — legger til `@vercel/kv` og `next-auth@beta`
 
 ### Filer som slettes
 - `/public/config.json` (flyttet)
+- Referanser til `JSONBIN_MASTER_KEY` / `JSONBIN_BIN_ID` i alle env-filer
 
 ---
 
@@ -269,25 +282,38 @@ Men det er framtids-Ko|Do sitt problem. 😄
 4. BRAND_NAME i AppHeader
 5. (Valgfritt) ACCENT i Tailwind via CSS-var
 
-**Fase C — Auth** (~90 min)
-6. Installer next-auth
-7. Sett opp route + providers
-8. Whitelist-logikk
-9. AuthGate-komponent
-10. Login-side + logout-knapp
-11. Feature flag på/av
+**Fase C — Migrering JSONBin → Vercel KV** (~45 min)
+6. Installer `@vercel/kv`
+7. Skriv om `/app/api/todos/route.ts` til å bruke KV i stedet for JSONBin fetch
+8. Lag engangs-migrerings-skript: `scripts/migrate-jsonbin-to-kv.ts`
+   - Leser fra gammel JSONBin
+   - Skriver til KV
+   - Logger antall migrerte records
+9. Kjør migrering for Ko|Do-instansen
+10. Verifiser at data er identisk
+11. Slett JSONBin-referanser fra `.env.local` og `useTodos.ts`
 
-**Fase D — Dokumentasjon + testing** (~30 min)
-12. Skriv DEPLOY_NEW_CLIENT.md (commitet sjekkliste)
-13. Skriv `_template.json`
-14. End-to-end test lokalt
+**Fase D — Auth** (~90 min)
+12. Installer next-auth
+13. Sett opp route + providers
+14. Whitelist-logikk
+15. AuthGate-komponent
+16. Login-side + logout-knapp
+17. Feature flag på/av
 
-**Fase E — Deploy første kunde (deg selv)** (~15 min)
-15. Sett opp Ko|Do-instans med alle env-vars
-16. Test Google-login
-17. Verifiser JSONBin-data fortsatt er intakt
+**Fase E — Dokumentasjon + testing** (~30 min)
+18. Skriv DEPLOY_NEW_CLIENT.md (commitet sjekkliste)
+19. Skriv `_template.json`
+20. End-to-end test lokalt
 
-**Total: ~3–3,5 timer i ett hugg.**
+**Fase F — Deploy første kunde (deg selv)** (~20 min)
+21. Koble Vercel KV til Ko|Do-prosjektet
+22. Sett opp Ko|Do-instans med alle env-vars
+23. Test Google-login
+24. Verifiser KV-data og respons-tid
+25. Deaktiver/slett gammel JSONBin når alt er verifisert
+
+**Total: ~4–4,5 timer i ett hugg.**
 
 ---
 
@@ -297,7 +323,8 @@ Men det er framtids-Ko|Do sitt problem. 😄
 |---|---|---|
 | Glemmer env-var → appen krasjer ved deploy | Høy | Sjekkliste i DEPLOY_NEW_CLIENT.md |
 | Google OAuth callback URL-mismatch | Middels | Dokumenter begge URL-er (lokal + prod) |
-| JSONBin free tier-grense | Lav | Flytt til Pro ($3/mnd) eller Supabase ved behov |
+| KV-migrering mister data | Lav | Kjør dry-run først, behold JSONBin til alt er verifisert |
+| KV free tier-grense nås | Lav | 30k kommandoer/mnd holder i praksis; oppgrader eller bytt til Postgres |
 | Kunde mister OAuth-tilgang (domene utløper) | Lav | Egen OAuth-app per kunde = isolert feil |
 | Accidentally pusher secrets til Git | Middels | Bruk `.env.local` + `.gitignore` + hemmelighets-scanner |
 
@@ -312,6 +339,101 @@ Før vi setter i gang med implementering, bekreft:
 - [ ] Ønsker du "feature flag-modus" der auth kan skrus helt av per deploy?
 - [ ] Skal første implementering også inkludere din egen Ko|Do-instans med auth, eller beholder vi den åpen?
 - [ ] Vil du ha en "Emergency bypass"-env-var i tilfelle auth krasjer i produksjon?
+- [ ] Migrere JSONBin → Vercel KV som del av samme hugg? _(anbefalt — se seksjon 13)_
+
+---
+
+## 13. Migrering: JSONBin → Vercel KV
+
+### Hvorfor vi bytter
+
+| Metric | JSONBin | Vercel KV |
+|---|---|---|
+| Read-tid | 200–2000 ms (varierer) | ~20 ms (stabil) |
+| Write-tid | 300–500 ms | ~20 ms |
+| Free tier-grense | 10k requests/mnd | 30k kommandoer/mnd |
+| Kobling til Vercel | HTTP fetch med header-auth | SDK, env-auto-injiseres |
+| Data-browser | Web-UI på jsonbin.io | I Vercel Dashboard |
+| Backup/export | Manuell (CSV eller download) | Én-klikk i Vercel |
+
+**Hovedsmerte:** JSONBin er tregt og uforutsigbart. Brukere opplever spinnere på handlinger som toggle/add/delete.
+
+### Hva som faktisk endres i koden
+
+Kun **én fil** endres i praksis: `/app/api/todos/route.ts`. Hooks og komponenter forblir identiske fordi de snakker mot samme internal API.
+
+**Før** (forenklet):
+```typescript
+export async function GET() {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+    headers: { "X-Master-Key": MASTER_KEY }
+  });
+  const { record } = await res.json();
+  return Response.json(record);
+}
+
+export async function PUT(req: Request) {
+  const body = await req.json();
+  await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": MASTER_KEY,
+    },
+    body: JSON.stringify(body),
+  });
+  return Response.json({ ok: true });
+}
+```
+
+**Etter**:
+```typescript
+import { kv } from "@vercel/kv";
+
+export async function GET() {
+  const data = (await kv.get<BinData>("todos")) ?? { ToDoEvents: [] };
+  return Response.json(data);
+}
+
+export async function PUT(req: Request) {
+  const body = await req.json();
+  await kv.set("todos", body);
+  return Response.json({ ok: true });
+}
+```
+
+Mindre kode, raskere, og nøkler forsvinner fra applikasjonen (Vercel injiserer dem automatisk).
+
+### Migreringsflyt (engangs-jobb per kunde)
+
+1. **Opprett KV-store** i Vercel (3 min, steg 1 i onboardings-flyten)
+2. **Kjør migreringsskript** `scripts/migrate-jsonbin-to-kv.ts`:
+   ```bash
+   npx tsx scripts/migrate-jsonbin-to-kv.ts \
+     --bin-id=$OLD_JSONBIN_ID \
+     --master-key=$OLD_JSONBIN_KEY
+   ```
+   Skriptet:
+   - Henter alle `ToDoEvents` fra JSONBin
+   - Skriver dem til `kv.set("todos", data)`
+   - Printer antall records migrert
+3. **Verifiser** i Vercel KV Data Browser — skal se samme antall oppgaver
+4. **Bytt kode-endepunkt** til KV (commit + deploy)
+5. **Behold JSONBin i 1 uke** som fail-safe backup
+6. **Slett JSONBin** når alt er verifisert i produksjon
+
+### Rollback-plan
+
+Hvis noe går galt:
+1. Revertér commit som byttet til KV
+2. Env-var `JSONBIN_*` er fortsatt i Vercel → appen virker igjen
+3. Ingen datatap så lenge JSONBin ikke er slettet
+
+### Kostnad etter bytte
+
+- JSONBin: behold gratis til data er slettet (1 uke), si opp
+- Vercel KV free tier: 30k kommandoer/mnd = ~1000/dag = mer enn nok for en konsulent-planlegger
+- Realistisk forbruk for én bruker: ~50–200 kommandoer/dag
 
 ---
 
