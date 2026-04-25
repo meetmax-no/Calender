@@ -195,6 +195,7 @@ export function SettingsPanel({
                   value={<span className="tabular-nums">{commercialCount}</span>}
                 />
                 <InfoRow label="Versjon" value={branding.version} />
+                <InfoRow label="Datalager" value="Upstash Redis" />
               </div>
             </div>
           )}
