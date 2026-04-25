@@ -26,7 +26,7 @@ const DEFAULT_BG =
 
 export default function Home() {
   const { todos, status, error, addTodo, updateTodo, deleteTodo, toggleTodo, saveAll } = useTodos();
-  const { config, status: configStatus } = useAppConfig();
+  const { config, status: configStatus, error: configError, requestedClient, activeClient } = useAppConfig();
   const { prefs, setPrefs } = useUserPrefs();
   const branding = getBranding();
 
@@ -271,6 +271,10 @@ export default function Home() {
         backgroundMode={prefs.backgroundMode}
         onSelectBackground={(idx) => setPrefs({ backgroundIndex: idx })}
         onSelectMode={(mode) => setPrefs({ backgroundMode: mode })}
+        requestedClient={requestedClient}
+        activeClient={activeClient}
+        configError={configError}
+        branding={branding}
       />
 
       <LoadingToast status={status} configStatus={configStatus} />

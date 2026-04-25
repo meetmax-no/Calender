@@ -13,6 +13,10 @@ interface UseAppConfigResult {
   config: AppConfig;
   status: ConfigStatus;
   error: string | null;
+  /** Filnavn (uten .json) som ble bedt om via env-var */
+  requestedClient: string;
+  /** Filnavn (uten .json) som faktisk ble lastet */
+  activeClient: string;
 }
 
 const DEFAULT_CLIENT = "default";
@@ -27,28 +31,31 @@ export function useAppConfig(): UseAppConfigResult {
   const [config, setConfig] = useState<AppConfig>(FALLBACK_CONFIG);
   const [status, setStatus] = useState<ConfigStatus>("loading");
   const [error, setError] = useState<string | null>(null);
+  const requestedClient =
+    process.env.NEXT_PUBLIC_CLIENT_CONFIG?.trim() || DEFAULT_CLIENT;
+  const [activeClient, setActiveClient] = useState<string>(requestedClient);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const requested =
-        process.env.NEXT_PUBLIC_CLIENT_CONFIG?.trim() || DEFAULT_CLIENT;
       try {
-        const data = await fetchClientConfig(requested);
+        const data = await fetchClientConfig(requestedClient);
         if (!cancelled) {
           setConfig(data);
+          setActiveClient(requestedClient);
           setStatus("ready");
         }
       } catch (primaryErr) {
         // Forsøk fallback til default hvis vi ba om noe annet
-        if (requested !== DEFAULT_CLIENT) {
+        if (requestedClient !== DEFAULT_CLIENT) {
           try {
             const data = await fetchClientConfig(DEFAULT_CLIENT);
             if (!cancelled) {
               setConfig(data);
+              setActiveClient(DEFAULT_CLIENT);
               setStatus("ready");
               setError(
-                `Fant ikke clients/${requested}.json — bruker default i stedet.`,
+                `Fant ikke clients/${requestedClient}.json — bruker default i stedet.`,
               );
             }
             return;
@@ -67,9 +74,9 @@ export function useAppConfig(): UseAppConfigResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [requestedClient]);
 
-  return { config, status, error };
+  return { config, status, error, requestedClient, activeClient };
 }
 
 // Hjelpefunksjoner for å hente enkelt-informasjon fra config
