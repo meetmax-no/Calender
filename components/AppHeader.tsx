@@ -62,7 +62,8 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
         <div className="flex items-baseline gap-2">
           <h1 className="text-xl font-semibold text-white drop-shadow-lg tracking-tight">
             {branding.tagline}
-            <span className="ml-2 font-semibold text-white/85">
+            <span className="mx-2 text-white/50">·</span>
+            <span className="font-semibold text-white/85">
               {branding.name}
             </span>
           </h1>
