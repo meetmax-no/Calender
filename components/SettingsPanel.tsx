@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle } from "lucide-react";
+import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle, ChevronDown } from "lucide-react";
 import type { AppConfig } from "@/lib/config";
 import type { BackgroundMode } from "@/hooks/useUserPrefs";
 import type { Todo } from "@/lib/types";
@@ -46,6 +46,11 @@ export function SettingsPanel({
   const [exportTypes, setExportTypes] = useState<Set<string>>(
     new Set(activeTypes.map((t) => t.key)),
   );
+  // Auto-åpne config-seksjonen hvis det er en feil/fallback å vise
+  const usingFallback = activeClient !== requestedClient;
+  const [configOpen, setConfigOpen] = useState<boolean>(
+    usingFallback || Boolean(configError),
+  );
 
   if (!open) return null;
 
@@ -73,7 +78,6 @@ export function SettingsPanel({
   const activeTaskTypeCount = activeTypes.length;
   const holidayCount = Object.keys(config.holidays ?? {}).length;
   const commercialCount = Object.keys(config.commercialDays ?? {}).length;
-  const usingFallback = activeClient !== requestedClient;
 
   return (
     <div
@@ -99,75 +103,101 @@ export function SettingsPanel({
           </button>
         </div>
 
-        {/* ============== Konfigurasjon ============== */}
+        {/* ============== Konfigurasjon (collapsible) ============== */}
         <section data-testid="settings-config-info" className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Settings2 className="h-4 w-4 text-white/70" />
-            <h3 className="text-sm font-semibold text-white/90">Konfigurasjon</h3>
-          </div>
-
-          {usingFallback && (
-            <div
-              data-testid="settings-config-fallback-warn"
-              className="mb-3 flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-400/30 text-amber-100 text-[11px] leading-relaxed"
-            >
-              <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-              <span>
-                Fant ikke <code className="bg-black/30 px-1 rounded">clients/{requestedClient}.json</code>.
-                Bruker <code className="bg-black/30 px-1 rounded">default.json</code> som fallback.
-              </span>
-            </div>
-          )}
-
-          {configError && !usingFallback && (
-            <div className="mb-3 flex items-start gap-2 p-2.5 rounded-lg bg-rose-500/10 border border-rose-400/30 text-rose-100 text-[11px]">
-              <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-              <span>{configError}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-2 text-[11px]">
-            <InfoRow
-              label="Aktiv config"
-              value={
-                <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono">
-                  clients/{activeClient}.json
-                </code>
-              }
-            />
-            <InfoRow
-              label="Env satt til"
-              value={
-                <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono">
-                  {requestedClient}
-                </code>
-              }
-            />
-            <InfoRow label="Brand" value={branding.name} />
-            <InfoRow label="Tagline" value={branding.tagline} />
-            <InfoRow
-              label="Task-typer"
-              value={
-                <span className="tabular-nums">
-                  {activeTaskTypeCount} aktiv
-                  {activeTaskTypeCount === 1 ? "" : "e"} av {taskTypeCount}
+          <button
+            data-testid="settings-config-toggle"
+            onClick={() => setConfigOpen(!configOpen)}
+            className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition"
+          >
+            <div className="flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-white/70" />
+              <span className="text-sm font-semibold text-white/90">Konfigurasjon</span>
+              {(usingFallback || configError) && (
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-200 bg-amber-500/15 border border-amber-400/30 px-1.5 py-0.5 rounded">
+                  <AlertCircle className="h-2.5 w-2.5" />
+                  Avvik
                 </span>
-              }
+              )}
+              {!configOpen && !usingFallback && !configError && (
+                <span className="text-[10px] text-white/40 font-mono">
+                  · clients/{activeClient}.json
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-white/60 transition-transform ${
+                configOpen ? "rotate-180" : ""
+              }`}
             />
-            <InfoRow
-              label="Bakgrunner"
-              value={<span className="tabular-nums">{backgrounds.length}</span>}
-            />
-            <InfoRow
-              label="Helligdager"
-              value={<span className="tabular-nums">{holidayCount}</span>}
-            />
-            <InfoRow
-              label="Kommersielle dager"
-              value={<span className="tabular-nums">{commercialCount}</span>}
-            />
-            <InfoRow label="Versjon" value={branding.version} />
-          </div>
+          </button>
+
+          {configOpen && (
+            <div className="mt-3">
+              {usingFallback && (
+                <div
+                  data-testid="settings-config-fallback-warn"
+                  className="mb-3 flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-400/30 text-amber-100 text-[11px] leading-relaxed"
+                >
+                  <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                  <span>
+                    Fant ikke <code className="bg-black/30 px-1 rounded">clients/{requestedClient}.json</code>.
+                    Bruker <code className="bg-black/30 px-1 rounded">default.json</code> som fallback.
+                  </span>
+                </div>
+              )}
+
+              {configError && !usingFallback && (
+                <div className="mb-3 flex items-start gap-2 p-2.5 rounded-lg bg-rose-500/10 border border-rose-400/30 text-rose-100 text-[11px]">
+                  <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                  <span>{configError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <InfoRow
+                  label="Aktiv config"
+                  value={
+                    <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono">
+                      clients/{activeClient}.json
+                    </code>
+                  }
+                />
+                <InfoRow
+                  label="Env satt til"
+                  value={
+                    <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono">
+                      {requestedClient}
+                    </code>
+                  }
+                />
+                <InfoRow label="Brand" value={branding.name} />
+                <InfoRow label="Tagline" value={branding.tagline} />
+                <InfoRow
+                  label="Task-typer"
+                  value={
+                    <span className="tabular-nums">
+                      {activeTaskTypeCount} aktiv
+                      {activeTaskTypeCount === 1 ? "" : "e"} av {taskTypeCount}
+                    </span>
+                  }
+                />
+                <InfoRow
+                  label="Bakgrunner"
+                  value={<span className="tabular-nums">{backgrounds.length}</span>}
+                />
+                <InfoRow
+                  label="Helligdager"
+                  value={<span className="tabular-nums">{holidayCount}</span>}
+                />
+                <InfoRow
+                  label="Kommersielle dager"
+                  value={<span className="tabular-nums">{commercialCount}</span>}
+                />
+                <InfoRow label="Versjon" value={branding.version} />
+              </div>
+            </div>
+          )}
         </section>
 
         <div className="border-t border-white/10 mb-5" />
