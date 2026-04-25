@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "client": "Kundenavn AS",
+    "createdAt": "YYYY-MM-DD",
+    "createdBy": "Ko|Do Consult",
+    "notes": "Kontaktperson, spesielle behov, m.m."
+  },
+  "taskTypes": {
+    "TYPE1": { "label": "Type 1", "color": "#3B82F6", "active": true, "defaultSlot": "10-12" },
+    "TYPE2": { "label": "Type 2", "color": "#10B981", "active": true, "defaultSlot": "10-12" },
+    "ADMIN": { "label": "Admin", "color": "#94A3B8", "active": true, "defaultSlot": "08-10" },
+    "OTHER": { "label": "Annet", "color": "#A855F7", "active": true, "defaultSlot": "12-14" }
+  },
+  "holidays": {},
+  "commercialDays": {},
+  "colors": [
+    { "name": "Rosa", "hex": "#EC4899" },
+    { "name": "Rose", "hex": "#F43F5E" },
+    { "name": "Oransje", "hex": "#F97316" },
+    { "name": "Gul", "hex": "#F59E0B" },
+    { "name": "Emerald", "hex": "#10B981" },
+    { "name": "Teal", "hex": "#14B8A6" },
+    { "name": "Sky", "hex": "#0EA5E9" },
+    { "name": "Blå", "hex": "#3B82F6" },
+    { "name": "Indigo", "hex": "#6366F1" },
+    { "name": "Lilla", "hex": "#A855F7" }
+  ],
+  "backgrounds": [
+    { "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop", "name": "Fjell ved soloppgang" }
+  ]
+}

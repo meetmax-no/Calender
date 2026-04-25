@@ -19,6 +19,7 @@ import type { StatusFilter } from "@/components/StatusFilterBar";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { toDateKey } from "@/lib/date";
+import { getBranding } from "@/lib/branding";
 
 const DEFAULT_BG =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
@@ -27,6 +28,7 @@ export default function Home() {
   const { todos, status, error, addTodo, updateTodo, deleteTodo, toggleTodo, saveAll } = useTodos();
   const { config, status: configStatus } = useAppConfig();
   const { prefs, setPrefs } = useUserPrefs();
+  const branding = getBranding();
 
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month" | "list">("week");
@@ -179,7 +181,7 @@ export default function Home() {
             data-testid="app-footer"
             className="px-5 py-3 border-t border-white/10 text-[11px] text-white/45 font-medium tracking-wider select-none print:hidden"
           >
-            By Ko | Do · Consult · v1.0
+            {branding.name} · By Ko | Do · Consult · {branding.version}
           </div>
         </aside>
 

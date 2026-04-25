@@ -3,6 +3,7 @@
 import { Search, Settings, Menu } from "lucide-react";
 import type { SyncStatus } from "@/hooks/useTodos";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
+import { getBranding } from "@/lib/branding";
 
 interface AppHeaderProps {
   status: SyncStatus;
@@ -10,6 +11,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
+  const branding = getBranding();
   const renderStatus = () => {
     if (status === "loading" || status === "saving") {
       return (
@@ -59,7 +61,10 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
         </button>
         <div className="flex items-baseline gap-3">
           <h1 className="text-xl font-semibold text-white drop-shadow-lg tracking-tight">
-            Me &amp; Max ToDo Planner
+            {branding.name}
+            <span className="ml-2 text-sm font-normal text-white/70">
+              {branding.tagline}
+            </span>
           </h1>
           {renderStatus()}
         </div>

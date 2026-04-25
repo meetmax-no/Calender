@@ -1,8 +1,8 @@
 "use client";
 
-// Laster /config.json ved runtime. Filen ligger i /public så den serves
-// direkte av Vercel CDN. Brukeren kan redigere den via kodo-editor og
-// commite til GitHub — appen plukker opp endringen ved neste sidelast.
+// Laster kunde-spesifikk config fra /public/clients/<name>.json basert på
+// NEXT_PUBLIC_CLIENT_CONFIG. Hvis env mangler eller filen ikke finnes,
+// faller vi tilbake til "default" så appen alltid har data.
 
 import { useEffect, useState } from "react";
 import { FALLBACK_CONFIG, type AppConfig } from "@/lib/config";
@@ -15,6 +15,14 @@ interface UseAppConfigResult {
   error: string | null;
 }
 
+const DEFAULT_CLIENT = "default";
+
+async function fetchClientConfig(name: string): Promise<AppConfig> {
+  const res = await fetch(`/clients/${name}.json`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for clients/${name}.json`);
+  return (await res.json()) as AppConfig;
+}
+
 export function useAppConfig(): UseAppConfigResult {
   const [config, setConfig] = useState<AppConfig>(FALLBACK_CONFIG);
   const [status, setStatus] = useState<ConfigStatus>("loading");
@@ -23,17 +31,35 @@ export function useAppConfig(): UseAppConfigResult {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const requested =
+        process.env.NEXT_PUBLIC_CLIENT_CONFIG?.trim() || DEFAULT_CLIENT;
       try {
-        const res = await fetch("/config.json", { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = (await res.json()) as AppConfig;
+        const data = await fetchClientConfig(requested);
         if (!cancelled) {
           setConfig(data);
           setStatus("ready");
         }
-      } catch (err) {
+      } catch (primaryErr) {
+        // Forsøk fallback til default hvis vi ba om noe annet
+        if (requested !== DEFAULT_CLIENT) {
+          try {
+            const data = await fetchClientConfig(DEFAULT_CLIENT);
+            if (!cancelled) {
+              setConfig(data);
+              setStatus("ready");
+              setError(
+                `Fant ikke clients/${requested}.json — bruker default i stedet.`,
+              );
+            }
+            return;
+          } catch {
+            /* fall-through */
+          }
+        }
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Ukjent feil");
+          setError(
+            primaryErr instanceof Error ? primaryErr.message : "Ukjent feil",
+          );
           setStatus("error");
         }
       }
