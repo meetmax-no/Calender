@@ -59,11 +59,11 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-baseline gap-2">
           <h1 className="text-xl font-semibold text-white drop-shadow-lg tracking-tight">
-            {branding.name}
-            <span className="ml-2 text-sm font-normal text-white/70">
-              {branding.tagline}
+            {branding.tagline}
+            <span className="ml-2 font-semibold text-white/85">
+              {branding.name}
             </span>
           </h1>
           {renderStatus()}
