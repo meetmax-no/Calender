@@ -38,14 +38,14 @@ export function TaskCardTooltip({
           side="top"
           align="start"
           sideOffset={6}
-          className="max-w-[280px] bg-slate-900/95 backdrop-blur-md border-white/15 text-white shadow-2xl px-3 py-2.5"
+          className="max-w-[280px] bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-2xl px-3 py-2.5"
           data-testid="task-tooltip"
         >
-          <p className="text-[12px] leading-snug whitespace-pre-wrap break-words">
+          <p className="text-[12px] leading-snug whitespace-pre-wrap break-words text-white/95">
             {description}
           </p>
           {estimateHours !== undefined && (
-            <div className="mt-1.5 pt-1.5 border-t border-white/10 flex items-center gap-1.5 text-[10px] text-white/70 font-semibold uppercase tracking-wider">
+            <div className="mt-1.5 pt-1.5 border-t border-white/15 flex items-center gap-1.5 text-[10px] text-white/70 font-semibold uppercase tracking-wider">
               <Clock className="h-3 w-3" />
               <span className="tabular-nums">{formatHours(estimateHours)}</span>
             </div>
