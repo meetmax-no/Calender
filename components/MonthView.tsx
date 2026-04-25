@@ -15,6 +15,7 @@ import {
   subMonths,
 } from "@/lib/date";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
+import { TaskCardTooltip, formatHours } from "./TaskCardTooltip";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -295,39 +296,52 @@ function MonthRow({
                 const typeConfig = config.taskTypes[t.type];
                 if (!typeConfig) return null;
                 return (
-                  <div
+                  <TaskCardTooltip
                     key={t.id}
-                    data-testid={`month-todo-${t.id}`}
-                    className={`pointer-events-auto flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm group/todo transition ${
-                      t.completed ? "opacity-50" : ""
-                    } ${!inCurrentMonth ? "opacity-60" : ""}`}
-                    style={{ backgroundColor: typeConfig.color, color: "white" }}
+                    description={t.description}
+                    estimateHours={t.estimateHours}
                   >
-                    <button
-                      data-testid={`month-todo-toggle-${t.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTodoToggle(t.id);
-                      }}
-                      className="flex-shrink-0 w-3 h-3 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
-                      aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
+                    <div
+                      data-testid={`month-todo-${t.id}`}
+                      className={`pointer-events-auto flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm group/todo transition ${
+                        t.completed ? "opacity-50" : ""
+                      } ${!inCurrentMonth ? "opacity-60" : ""}`}
+                      style={{ backgroundColor: typeConfig.color, color: "white" }}
                     >
-                      {t.completed && <Check className="h-1.5 w-1.5 text-white" strokeWidth={4} />}
-                    </button>
-                    <button
-                      data-testid={`month-todo-click-${t.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTodoClick(t);
-                      }}
-                      className={`flex-1 truncate text-left leading-tight ${
-                        t.completed ? "line-through" : ""
-                      }`}
-                      title={`${t.title} · ${t.slot}`}
-                    >
-                      {t.title}
-                    </button>
-                  </div>
+                      <button
+                        data-testid={`month-todo-toggle-${t.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTodoToggle(t.id);
+                        }}
+                        className="flex-shrink-0 w-3 h-3 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
+                        aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
+                      >
+                        {t.completed && <Check className="h-1.5 w-1.5 text-white" strokeWidth={4} />}
+                      </button>
+                      <button
+                        data-testid={`month-todo-click-${t.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTodoClick(t);
+                        }}
+                        className={`flex-1 min-w-0 truncate text-left leading-tight ${
+                          t.completed ? "line-through" : ""
+                        }`}
+                        title={`${t.title} · ${t.slot}`}
+                      >
+                        {t.title}
+                      </button>
+                      {t.estimateHours !== undefined && (
+                        <span
+                          data-testid={`month-todo-estimate-${t.id}`}
+                          className="flex-shrink-0 text-[9px] font-semibold tabular-nums bg-black/25 px-1 rounded"
+                        >
+                          {formatHours(t.estimateHours)}
+                        </span>
+                      )}
+                    </div>
+                  </TaskCardTooltip>
                 );
               })}
               {dayTodos.length > MAX_VISIBLE_TASKS && (

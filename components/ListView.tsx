@@ -18,6 +18,7 @@ import { getISOWeek, toDateKey } from "@/lib/date";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
+import { formatHours } from "./TaskCardTooltip";
 
 type ViewMode = "week" | "month" | "list";
 type SortKey = "date" | "type" | "title" | "completed";
@@ -231,6 +232,9 @@ export function ListView({
                   >
                     Tittel
                   </HeaderCell>
+                  <th className="px-2 py-2.5 w-16 text-right text-[10px] font-semibold text-white/60 uppercase tracking-wider">
+                    Estimat
+                  </th>
                   <th className="px-3 py-2.5 w-24 text-right">Handlinger</th>
                 </tr>
               </thead>
@@ -318,6 +322,20 @@ export function ListView({
                           <div className="text-[11px] text-white/50 mt-0.5 truncate max-w-md">
                             {t.description}
                           </div>
+                        )}
+                      </td>
+
+                      {/* Estimat */}
+                      <td className="px-2 py-3 text-right">
+                        {t.estimateHours !== undefined ? (
+                          <span
+                            data-testid={`list-estimate-${t.id}`}
+                            className="text-[11px] font-semibold tabular-nums text-white/70"
+                          >
+                            {formatHours(t.estimateHours)}
+                          </span>
+                        ) : (
+                          <span className="text-white/20">—</span>
                         )}
                       </td>
 

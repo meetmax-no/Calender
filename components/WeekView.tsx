@@ -17,6 +17,7 @@ import {
 import type { Todo } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
+import { TaskCardTooltip, formatHours } from "./TaskCardTooltip";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -271,38 +272,51 @@ function SlotRow({
                 const typeConfig = config.taskTypes[t.type];
                 if (!typeConfig) return null;
                 return (
-                  <div
+                  <TaskCardTooltip
                     key={t.id}
-                    data-testid={`todo-card-${t.id}`}
-                    className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition ${
-                      t.completed ? "opacity-50" : ""
-                    }`}
-                    style={{ backgroundColor: typeConfig.color, color: "white" }}
+                    description={t.description}
+                    estimateHours={t.estimateHours}
                   >
-                    <button
-                      data-testid={`todo-toggle-${t.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTodoToggle(t.id);
-                      }}
-                      className="flex-shrink-0 w-4 h-4 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
-                      aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
-                      title={t.completed ? "Marker som ikke-ferdig" : "Marker som ferdig"}
+                    <div
+                      data-testid={`todo-card-${t.id}`}
+                      className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition ${
+                        t.completed ? "opacity-50" : ""
+                      }`}
+                      style={{ backgroundColor: typeConfig.color, color: "white" }}
                     >
-                      {t.completed && <Check className="h-2.5 w-2.5 text-white" strokeWidth={4} />}
-                    </button>
-                    <button
-                      data-testid={`todo-click-${t.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTodoClick(t);
-                      }}
-                      className={`flex-1 truncate text-left leading-tight ${t.completed ? "line-through" : ""}`}
-                      title={t.title}
-                    >
-                      {t.title}
-                    </button>
-                  </div>
+                      <button
+                        data-testid={`todo-toggle-${t.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTodoToggle(t.id);
+                        }}
+                        className="flex-shrink-0 w-4 h-4 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
+                        aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
+                        title={t.completed ? "Marker som ikke-ferdig" : "Marker som ferdig"}
+                      >
+                        {t.completed && <Check className="h-2.5 w-2.5 text-white" strokeWidth={4} />}
+                      </button>
+                      <button
+                        data-testid={`todo-click-${t.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTodoClick(t);
+                        }}
+                        className={`flex-1 min-w-0 truncate text-left leading-tight ${t.completed ? "line-through" : ""}`}
+                        title={t.title}
+                      >
+                        {t.title}
+                      </button>
+                      {t.estimateHours !== undefined && (
+                        <span
+                          data-testid={`todo-estimate-${t.id}`}
+                          className="flex-shrink-0 text-[10px] font-semibold tabular-nums bg-black/25 px-1.5 py-0.5 rounded-full"
+                        >
+                          {formatHours(t.estimateHours)}
+                        </span>
+                      )}
+                    </div>
+                  </TaskCardTooltip>
                 );
               })}
             </div>

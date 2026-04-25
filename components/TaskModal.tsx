@@ -28,6 +28,16 @@ function generateId(): string {
   return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Parser fritekst (komma eller punktum, opp til 1 desimal) til tall.
+// Returnerer undefined hvis tomt eller ugyldig.
+function parseEstimate(input: string): number | undefined {
+  const trimmed = input.trim().replace(",", ".");
+  if (trimmed === "") return undefined;
+  const num = parseFloat(trimmed);
+  if (!Number.isFinite(num) || num <= 0) return undefined;
+  return Math.round(num * 10) / 10; // én desimal
+}
+
 function expandDates(
   startDate: string,
   freq: RecurrenceFrequency,
@@ -65,6 +75,7 @@ export function TaskModal({
           date: mode.todo.date,
           slot: mode.todo.slot,
           description: mode.todo.description ?? "",
+          estimate: mode.todo.estimateHours?.toString() ?? "",
           completed: mode.todo.completed,
         }
       : {
@@ -77,6 +88,7 @@ export function TaskModal({
               ?.defaultSlot as TimeSlot) ??
             ("10-12" as TimeSlot),
           description: "",
+          estimate: "",
           completed: false,
         };
 
@@ -85,6 +97,7 @@ export function TaskModal({
   const [date, setDate] = useState(initialValues.date);
   const [slot, setSlot] = useState<TimeSlot>(initialValues.slot as TimeSlot);
   const [description, setDescription] = useState(initialValues.description);
+  const [estimate, setEstimate] = useState(initialValues.estimate);
   const [completed, setCompleted] = useState(initialValues.completed);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -113,6 +126,7 @@ export function TaskModal({
     // Gjentakende oppretter - generer N instanser
     if (mode.kind === "create" && isRecurring && onSaveRecurring) {
       const dates = expandDates(date, recurFreq, Math.max(1, Math.min(52, recurCount)));
+      const parsedEstimate = parseEstimate(estimate);
       const todos: Todo[] = dates.map((d) => ({
         id: generateId(),
         title: title.trim(),
@@ -120,6 +134,7 @@ export function TaskModal({
         date: d,
         slot,
         description: description.trim() || undefined,
+        estimateHours: parsedEstimate,
         completed: false,
         createdAt: now,
         updatedAt: now,
@@ -134,6 +149,7 @@ export function TaskModal({
       return;
     }
 
+    const parsedEstimate = parseEstimate(estimate);
     const todo: Todo =
       mode.kind === "edit"
         ? {
@@ -143,6 +159,7 @@ export function TaskModal({
             date,
             slot,
             description: description.trim() || undefined,
+            estimateHours: parsedEstimate,
             completed,
             updatedAt: now,
           }
@@ -153,6 +170,7 @@ export function TaskModal({
             date,
             slot,
             description: description.trim() || undefined,
+            estimateHours: parsedEstimate,
             completed,
             createdAt: now,
             updatedAt: now,
@@ -335,6 +353,38 @@ export function TaskModal({
               placeholder="Notater, lenke, kontekst..."
               className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/60 placeholder:text-white/30 resize-none"
             />
+          </div>
+
+          {/* Estimat (valgfritt) */}
+          <div>
+            <label className="block text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wider">
+              Estimat <span className="text-white/40 normal-case">(valgfri, timer)</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                data-testid="modal-estimate-input"
+                type="text"
+                inputMode="decimal"
+                value={estimate}
+                onChange={(e) => setEstimate(e.target.value)}
+                placeholder="F.eks. 0.5, 1, 2"
+                className="w-32 bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-400/60 placeholder:text-white/30"
+              />
+              <span className="text-xs text-white/50">timer</span>
+              <div className="flex gap-1 ml-auto">
+                {["0.5", "1", "2", "4"].map((preset) => (
+                  <button
+                    key={preset}
+                    data-testid={`modal-estimate-preset-${preset}`}
+                    type="button"
+                    onClick={() => setEstimate(preset)}
+                    className="px-2 py-1 rounded-md text-[10px] font-semibold tabular-nums bg-white/5 hover:bg-white/15 border border-white/10 text-white/70 transition"
+                  >
+                    {preset}t
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Ferdig-toggle */}

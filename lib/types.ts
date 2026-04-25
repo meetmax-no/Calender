@@ -11,6 +11,7 @@ export interface Todo {
   type: string; // dynamisk nøkkel fra config.taskTypes (ikke låst til union)
   title: string;
   description?: string;
+  estimateHours?: number; // valgfritt timeestimat (f.eks. 0.5, 1, 2, 4)
   date: string; // YYYY-MM-DD
   slot: TimeSlot;
   completed: boolean;

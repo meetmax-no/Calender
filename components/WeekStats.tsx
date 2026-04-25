@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { Todo } from "@/lib/types";
 import { getWeekDays, toDateKey } from "@/lib/date";
+import { formatHours } from "./TaskCardTooltip";
 
 interface WeekStatsProps {
   anchorDate: Date;
@@ -11,7 +12,7 @@ interface WeekStatsProps {
 }
 
 export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
-  const { total, done, overdue } = useMemo(() => {
+  const { total, done, overdue, estimateOpen, estimateDone } = useMemo(() => {
     const weekDays = getWeekDays(anchorDate);
     const weekKeys = new Set(weekDays.map((d) => toDateKey(d)));
     const todayKey = toDateKey(new Date());
@@ -27,7 +28,20 @@ export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
         t.date < todayKey,
     ).length;
 
-    return { total: inWeek.length, done, overdue };
+    const estimateOpen = inWeek
+      .filter((t) => !t.completed && t.estimateHours !== undefined)
+      .reduce((sum, t) => sum + (t.estimateHours ?? 0), 0);
+    const estimateDone = inWeek
+      .filter((t) => t.completed && t.estimateHours !== undefined)
+      .reduce((sum, t) => sum + (t.estimateHours ?? 0), 0);
+
+    return {
+      total: inWeek.length,
+      done,
+      overdue,
+      estimateOpen: Math.round(estimateOpen * 10) / 10,
+      estimateDone: Math.round(estimateDone * 10) / 10,
+    };
   }, [anchorDate, todos, visibleTypes]);
 
   const percent = total === 0 ? 0 : Math.round((done / total) * 100);
@@ -96,6 +110,33 @@ export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
               {overdue} {overdue === 1 ? "forsinket" : "forsinkede"}
             </p>
+          )}
+
+          {/* Estimat-sum (vises bare hvis noen oppgaver har estimat) */}
+          {(estimateOpen > 0 || estimateDone > 0) && (
+            <div
+              data-testid="week-stats-estimate"
+              className="mt-2.5 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px]"
+            >
+              <span className="text-white/50 uppercase tracking-wider font-semibold text-[10px]">
+                Estimat
+              </span>
+              <span className="text-white/80 tabular-nums font-medium">
+                {estimateDone > 0 && (
+                  <span className="text-emerald-300/80">
+                    {formatHours(estimateDone)}
+                  </span>
+                )}
+                {estimateDone > 0 && estimateOpen > 0 && (
+                  <span className="text-white/30 mx-1">·</span>
+                )}
+                {estimateOpen > 0 && (
+                  <span data-testid="week-stats-estimate-open">
+                    {formatHours(estimateOpen)} igjen
+                  </span>
+                )}
+              </span>
+            </div>
           )}
         </>
       )}
