@@ -8,6 +8,61 @@
 
 ---
 
+## 🏢 Eierskap-modell — velg ÉN per kunde
+
+Før du starter, bestem deg for hvem som skal eie tjenestene:
+
+### Modell A — Du eier alt på din Pro-konto _(standard)_
+
+```
+Din Vercel Pro ($20/mnd uansett kundeantall)
+├── planner-meetmax
+├── planner-acme
+└── planner-demo
+
+Din Upstash Pay-as-you-go (~$1/mnd per kunde)
+├── planner-meetmax-kv
+├── planner-acme-kv
+└── planner-demo-kv
+```
+
+- ✅ **Enklest** — null jobb for kunden, du har full kontroll
+- ✅ **Marginal kostnad** for hver ekstra kunde: ~$1/mnd
+- ✅ **Du fakturerer kunden** f.eks. 500 kr/mnd som dekker hosting + support
+- ✅ **Bug-fix og deploy** kan du gjøre når som helst uten å mase på kunden
+- ⚠️ Hvis dere skulle skille lag, må kunden migrere selv
+
+**Bruk denne for:**
+- Demo-instansen
+- Solo-konsulent-kunder (1–2 brukere)
+- Alle kunder med mindre de eksplisitt ønsker noe annet
+
+### Modell B — Kunden eier sin Vercel + Upstash _(opsjonal)_
+
+```
+Kundens egen Vercel Pro ($20/mnd, kunden betaler)
+└── planner-acme        ← du er invitert team-medlem
+
+Kundens egen Upstash-konto
+└── planner-acme-kv     ← du har tilgang via deres konto
+```
+
+- ✅ **Klart eierskap** — kunden eier sine data og sin deploy
+- ✅ **GDPR-vennlig** — kunden er sin egen data-prosessor
+- ✅ **Du skalerer uten kostnadsvekst** — 1 eller 50 kunder, dine egne kostnader er like
+- ⚠️ **5–10 min ekstra onboarding** — kunden må klikke gjennom Vercel + Upstash signup
+- ⚠️ Krever at kunden er villig til å ha en $20/mnd Vercel-faktura
+- ⚠️ Kunden ser regningen direkte — kan reagere
+
+**Bruk denne for:**
+- Større bedrifter med IT-avdeling
+- Kunder som eksplisitt vil eie sin egen infrastruktur
+- Kunder som har strenge data-krav
+
+> 💡 **Tommelfingerregel:** Start med Modell A. Bytt til Modell B kun hvis kunden ber om det.
+
+---
+
 ## ☎️ Fase 0 — Forarbeid (10 min, før møtet)
 
 Når du har en interessert kunde, samle inn:
@@ -17,6 +72,9 @@ Når du har en interessert kunde, samle inn:
 - [ ] **E-poster som skal ha tilgang** (per nå: alle som har URL får tilgang. Auth kommer senere)
 - [ ] **Brand-tagline** — kort beskrivelse vist i header (f.eks. *"Strategi & vekst"*)
 - [ ] **Spesielle ønsker:** task-typer, helligdager, bakgrunner — eller bruk standard?
+- [ ] **Bekreft modell:** A (du eier alt — standard) eller B (kunden eier sine kontoer)
+
+> 📝 **Hvis Modell B:** Be kunden opprette Vercel-konto og Upstash-konto i forkant. Be dem invitere deg som team-medlem på begge før møtet.
 
 ---
 
@@ -214,25 +272,38 @@ Ko|Do Consult
 
 ---
 
-## 💸 Kostnader per kunde
+## 💸 Kostnader
+
+### Modell A (du eier alt — anbefalt)
 
 | Tjeneste | Plan | Pris/mnd |
 |---|---|---|
-| Vercel Hobby | Gratis | **0 kr** |
-| Upstash Redis Free | 500k kommandoer/mnd | **0 kr** |
+| Vercel Pro | $20/mnd uansett antall kunder | **~200 kr** (din faste kostnad) |
+| Upstash Pay-as-you-go | $0,20 per 100k commands + $0,25/DB | **~$1 (10 kr) per kunde** |
 | GitHub | Allerede din | 0 kr |
 | Custom domene | Kunden eier | 0 kr |
-| **Totalt for deg** | | **0 kr / kunde** |
+| **Marginal kostnad per ekstra kunde** | | **~10 kr/mnd** |
 
-> ⚠️ **Free-grenser** å være obs på:
-> - **Upstash Free Plan: 1 database per Upstash-konto**
-> - Det betyr: For å lage en KV-store til kunde nr. 2 må du:
->   - a) Oppgradere Upstash til Pay-as-you-go ($0,2 per 100k commands), eller
->   - b) Lage en ny Upstash-konto for kunden (de eier den selv), eller
->   - c) Bytte til en delt KV med namespacing (nybygg, mer komplekst)
->
-> 🎯 **Anbefalt:** Be kunden lage egen Upstash-konto og kobler den til Vercel-prosjektet sitt.
-> Da betaler de selv for sin lagring og du har null risiko for å nå dine grenser.
+**Faktureringsmodell mot kunden:** ~500 kr/mnd (dekker hosting + support + din tid). Inntekt 490 kr per kunde, ren margin.
+
+### Modell B (kunden eier alt)
+
+| Tjeneste | Hvem betaler | Pris/mnd |
+|---|---|---|
+| Vercel Pro | **Kunden** | $20 (200 kr) |
+| Upstash Free tier | **Kunden** | 0 kr |
+| Custom domene | Kunden eier | 0 kr |
+| **Din kostnad** | | **0 kr** |
+
+**Faktureringsmodell mot kunden:** Kun support-tid (f.eks. 200–300 kr/mnd som vedlikehold).
+
+---
+
+> 💡 **Free tier-info for Modell A:**
+> Upstash Free Plan = **1 database per Upstash-konto** (ikke per prosjekt!)
+> Du må derfor oppgradere DIN Upstash til Pay-as-you-go for å lage flere DB-er.
+> Realistisk forbruk per KoDo-kunde: ~90k commands/mnd = ~$0,43/mnd.
+> Sett av $1/kunde for trygghet.
 
 ---
 
@@ -331,3 +402,19 @@ Når du skal sette opp en **demo-instans** for å vise potensielle kunder:
 ---
 
 _Versjon: v4.5.3 · Sist oppdatert: 26. apr 2026_
+
+---
+
+## 🔄 Variant: Modell B (kunden eier kontoer)
+
+Hvis kunden ønsker å eie sin egen Vercel + Upstash:
+
+**Endringer i flyten:**
+
+- **Fase 0:** Kunden lager Vercel-konto (Pro, $20/mnd) og Upstash-konto **før** møtet, og inviterer deg som team-medlem.
+- **Fase 2:** Upstash opprettes på *kundens* konto (bruk Free tier — 1 DB per konto er nok når kunden har sin egen)
+- **Fase 3:** Vercel-prosjekt opprettes på *kundens* konto (du logger inn som team-medlem)
+- **Fase 6:** I velkomst-e-posten nevn også at kunden bør sette inn fakturainfo selv på Vercel og Upstash
+- **Vedlikehold:** Du logger inn på kundens kontoer for bug-fix når trengs (~1–2 ganger per måned)
+
+**Resten av runbooken er identisk** — bare tenk "kundens konto" der det står Vercel/Upstash.
