@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Plus } from "lucide-react";
 import { SearchOverlayMobile } from "@/components/Search";
+import { getMondayOfISOWeek } from "@/lib/date";
 
 const DEFAULT_BG =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
@@ -43,6 +44,19 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const hasInitializedFilter = useRef(false);
+  const hasInitializedDemoAnchor = useRef(false);
+
+  // Demo-modus: ankre til konfigurert uke ved første ready
+  useEffect(() => {
+    if (configStatus !== "ready" || hasInitializedDemoAnchor.current) return;
+    if (config.demoMode && config.demoAnchorWeek) {
+      const monday = getMondayOfISOWeek(config.demoAnchorWeek);
+      if (monday) setAnchorDate(monday);
+    }
+    hasInitializedDemoAnchor.current = true;
+  }, [configStatus, config]);
+
+  const demoMode = Boolean(config.demoMode);
 
   useEffect(() => {
     if (configStatus === "ready" && !hasInitializedFilter.current) {
@@ -205,6 +219,7 @@ export default function Home() {
         todos={todos}
         config={config}
         onSelectTodo={handleTodoClick}
+        demoMode={demoMode}
       />
 
       <main className="relative h-screen w-full pt-20 flex">
@@ -291,7 +306,7 @@ export default function Home() {
               statusCounts={statusCounts}
               onTodoEdit={handleTodoClick}
               onTodoToggle={handleTodoToggle}
-              onTodoDelete={handleDelete}
+              onTodoDelete={demoMode ? undefined : handleDelete}
               onCreateNew={() =>
                 setModalMode({ kind: "create", initialDate: toDateKey(anchorDate) })
               }
@@ -336,8 +351,8 @@ export default function Home() {
           allTodos={todos}
           onClose={() => setModalMode(null)}
           onSave={handleSave}
-          onDelete={handleDelete}
-          onDuplicate={handleDuplicate}
+          onDelete={demoMode ? undefined : handleDelete}
+          onDuplicate={demoMode ? undefined : handleDuplicate}
           onSaveRecurring={handleSaveRecurring}
         />
       )}
@@ -355,6 +370,7 @@ export default function Home() {
         activeClient={activeClient}
         configError={configError}
         branding={branding}
+        demoMode={demoMode}
         onRestore={async (restoredTodos) => {
           await saveAll(restoredTodos);
           // Sørg for at typene som finnes i backup blir synlige etter restore

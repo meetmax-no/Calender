@@ -41,7 +41,7 @@ interface ListViewProps {
   statusCounts: { all: number; open: number; done: number };
   onTodoEdit: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
-  onTodoDelete: (id: string) => void;
+  onTodoDelete?: (id: string) => void;
   onCreateNew: () => void;
 }
 
@@ -493,19 +493,21 @@ export function ListView({
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            data-testid={`list-delete-${t.id}`}
-                            onClick={() => {
-                              if (window.confirm(`Slett "${t.title}"?`)) {
-                                onTodoDelete(t.id);
-                              }
-                            }}
-                            className="p-1.5 rounded-md hover:bg-red-500/20 text-white/70 hover:text-red-200 transition"
-                            aria-label="Slett"
-                            title="Slett"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {onTodoDelete && (
+                            <button
+                              data-testid={`list-delete-${t.id}`}
+                              onClick={() => {
+                                if (window.confirm(`Slett "${t.title}"?`)) {
+                                  onTodoDelete(t.id);
+                                }
+                              }}
+                              className="p-1.5 rounded-md hover:bg-red-500/20 text-white/70 hover:text-red-200 transition"
+                              aria-label="Slett"
+                              title="Slett"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

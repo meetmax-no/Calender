@@ -28,6 +28,18 @@ export interface AppConfig {
   holidays: Record<string, string>;
   commercialDays: Record<string, string>;
   backgrounds?: BackgroundImage[];
+  /**
+   * Demo-modus: når true vises et banner og destruktive handlinger sperres
+   * (Slett oppgave i TaskModal + Reset DB i Settings).
+   * Restore er fortsatt tilgjengelig — salgspersonens "reset til ren demo"-verktøy.
+   */
+  demoMode?: boolean;
+  /**
+   * Hvilken ISO-uke i inneværende år appen skal anke til ved oppstart i demo-modus.
+   * F.eks. demoAnchorWeek: 18 → demo åpner mandag i uke 18.
+   * Brukes kun når demoMode === true.
+   */
+  demoAnchorWeek?: number;
 }
 
 // Statiske UI-strenger (ikke brukerkonfigurerbart)

@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings, Menu, Search as SearchIcon } from "lucide-react";
+import { Settings, Menu, Search as SearchIcon, FlaskConical } from "lucide-react";
 import type { SyncStatus } from "@/hooks/useTodos";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { getBranding } from "@/lib/branding";
@@ -16,6 +16,7 @@ interface AppHeaderProps {
   todos: Todo[];
   config: AppConfig;
   onSelectTodo: (todo: Todo) => void;
+  demoMode?: boolean;
 }
 
 export function AppHeader({
@@ -25,6 +26,7 @@ export function AppHeader({
   todos,
   config,
   onSelectTodo,
+  demoMode = false,
 }: AppHeaderProps) {
   const branding = getBranding();
   const isMobile = useIsMobile();
@@ -81,6 +83,16 @@ export function AppHeader({
             <span className="mx-1.5 sm:mx-2 text-white/50">·</span>
             <span className="font-semibold text-white">{branding.name}</span>
           </h1>
+          {demoMode && (
+            <span
+              data-testid="demo-mode-chip"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-300/40 text-amber-100 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider"
+              title="Demo-modus aktiv — sletting er sperret"
+            >
+              <FlaskConical className="h-3 w-3" />
+              Demo
+            </span>
+          )}
           {!isMobile && renderStatus()}
         </div>
       </div>

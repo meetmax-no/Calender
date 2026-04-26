@@ -122,7 +122,20 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 - Portrett-versjon av bakgrunnsbilder via `urlPortrait` i client-config
 - Bakgrunn dempes med `bg-black/65 backdrop-blur` på mobil for bedre lesbarhet
 
-### v4.5 features (2026-04-26)
+### v4.5.3 features (2026-04-26)
+**Demo-modus (`demoMode` + `demoAnchorWeek` i config):**
+- Ny config-flagg `demoMode: boolean` per klient-fil (`default.json`, `meetmax.json`, `_template.json`)
+- `demoAnchorWeek: number` setter ISO-ukeøyeblikket appen åpner i ved oppstart
+- Helper `getMondayOfISOWeek(week, year?)` i `lib/date.ts` regner ut mandag i gitt ISO-uke
+- Når demoMode=true:
+  - Oransje "DEMO"-chip vises i AppHeader (kolbe-ikon)
+  - App ankrer til mandag i `demoAnchorWeek` ved første ready
+  - TaskModal sin Slett-knapp skjules (sender ikke `onDelete` ned)
+  - ListView sine slett-ikoner skjules (gjør `onTodoDelete` valgfri)
+  - Settings sin "Faresone" (Reset DB) skjules
+  - Backup + Restore beholdes synlig — salgspersonens reset-verktøy mellom demoer
+- Workflow for demo-deployment: lag pen demo-data én gang, ta backup, restore før hver kundedemo
+
 **Backup & Restore (`lib/backup.ts`):**
 - Last ned-knapp i Settings → genererer JSON-fil med alle todos + metadata, lastes ned via nettleseren (`kodo-backup-{client}-{dato}.json`)
 - Gjenopprett-knapp → filvelger → validerer format → bekreftelses-dialog → skriver til Upstash via `saveAll()`

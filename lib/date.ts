@@ -36,6 +36,25 @@ export function getISOWeek(date: Date): number {
   return parseInt(format(date, "I"), 10);
 }
 
+/**
+ * Returnerer mandag i gitt ISO-uke i et bestemt år.
+ * Hvis year ikke er gitt brukes inneværende år.
+ * Returnerer null hvis week er utenfor 1–53.
+ */
+export function getMondayOfISOWeek(week: number, year?: number): Date | null {
+  if (!Number.isFinite(week) || week < 1 || week > 53) return null;
+  const targetYear = year ?? new Date().getFullYear();
+  // ISO-8601 trick: 4. januar er alltid i ISO-uke 1.
+  // Finn mandag i den uka, så legg til (week - 1) uker.
+  const jan4 = new Date(targetYear, 0, 4);
+  const dayOfWeek = jan4.getDay() || 7; // Søndag (0) → 7
+  const mondayWeek1 = new Date(jan4);
+  mondayWeek1.setDate(jan4.getDate() - dayOfWeek + 1);
+  const result = new Date(mondayWeek1);
+  result.setDate(mondayWeek1.getDate() + (week - 1) * 7);
+  return result;
+}
+
 export function formatWeekdayShort(date: Date): string {
   return format(date, "EEE", { locale: nb }).replace(/\.$/, "").toUpperCase();
 }

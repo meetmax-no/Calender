@@ -1,6 +1,8 @@
 {
   "version": "1.0",
   "updatedAt": "2026-04-22",
+  "demoMode": false,
+  "demoAnchorWeek": 18,
   "taskTypes": {
     "TRACK1": {
       "label": "S1-LinkedIn",

@@ -33,6 +33,8 @@ interface SettingsPanelProps {
   onRestore: (todos: Todo[]) => Promise<void>;
   /** Brukes for å slette ALLE todos (reset) */
   onResetAll: () => Promise<void>;
+  /** Demo-modus: skjuler destruktive handlinger (reset) */
+  demoMode?: boolean;
 }
 
 export function SettingsPanel({
@@ -50,6 +52,7 @@ export function SettingsPanel({
   branding,
   onRestore,
   onResetAll,
+  demoMode = false,
 }: SettingsPanelProps) {
   const activeTypes = getActiveTaskTypes(config);
   const [exportTypes, setExportTypes] = useState<Set<string>>(
@@ -495,28 +498,30 @@ export function SettingsPanel({
             </span>
           </div>
 
-          {/* Faresone — reset */}
-          <div className="mt-5 pt-4 border-t border-white/10">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-[11px] font-semibold text-rose-300/90 uppercase tracking-wider">
-                Faresone
-              </h4>
+          {/* Faresone — reset (skjult i demo-modus) */}
+          {!demoMode && (
+            <div className="mt-5 pt-4 border-t border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-[11px] font-semibold text-rose-300/90 uppercase tracking-wider">
+                  Faresone
+                </h4>
+              </div>
+              <p className="text-[11px] text-white/50 mb-3 leading-relaxed">
+                Slett alle oppgaver permanent. Nyttig hvis du har testet med demo-data og vil starte
+                i prod med blanke ark. <strong className="text-amber-200">Ta backup først</strong>{" "}
+                hvis du vil ha mulighet til å angre.
+              </p>
+              <button
+                data-testid="backup-reset-btn"
+                onClick={() => setResetDialogOpen(true)}
+                disabled={todos.length === 0 || isResetting}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-400/30 hover:border-rose-400/50 text-rose-200 hover:text-rose-100 text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="h-4 w-4" />
+                {todos.length === 0 ? "Ingen oppgaver å slette" : `Slett alle ${todos.length} oppgaver`}
+              </button>
             </div>
-            <p className="text-[11px] text-white/50 mb-3 leading-relaxed">
-              Slett alle oppgaver permanent. Nyttig hvis du har testet med demo-data og vil starte
-              i prod med blanke ark. <strong className="text-amber-200">Ta backup først</strong>{" "}
-              hvis du vil ha mulighet til å angre.
-            </p>
-            <button
-              data-testid="backup-reset-btn"
-              onClick={() => setResetDialogOpen(true)}
-              disabled={todos.length === 0 || isResetting}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-400/30 hover:border-rose-400/50 text-rose-200 hover:text-rose-100 text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Trash2 className="h-4 w-4" />
-              {todos.length === 0 ? "Ingen oppgaver å slette" : `Slett alle ${todos.length} oppgaver`}
-            </button>
-          </div>
+          )}
         </section>
 
         <div className="mt-6 pt-4 border-t border-white/10 text-[11px] text-white/40">
