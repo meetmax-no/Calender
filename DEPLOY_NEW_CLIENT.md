@@ -136,7 +136,7 @@ Vercel vil **automatisk re-deploye** og injisere disse 5 vars:
 
 - [ ] Header viser **`<tagline> · <brand-name>`** (f.eks. *Strategi & vekst · Acme Planner*)
 - [ ] Tab-tittel: `Acme Planner · Strategi & vekst`
-- [ ] Footer: `Acme Planner · By Ko | Do · Consult · v2.1`
+- [ ] Footer: `Acme Planner · By Ko | Do · Consult · v4.5.3`
 - [ ] Sidebar: Riktige task-typer og farger fra kundens config
 - [ ] Bakgrunner: Riktige bilder
 - [ ] Helligdager (hvis satt): Vises i kalenderen
@@ -171,7 +171,7 @@ Hei <Kunde>,
 
 Din KoDo Planner-instans er klar:
 🌐 URL:  https://planner-<kallenavn>.vercel.app
-📅 Versjon: 2.1
+📅 Versjon: v4.5.3
 
 Slik kommer du i gang:
 1. Bokmerk lenken
@@ -249,6 +249,75 @@ Ko|Do Consult
 
 ---
 
+## 🧪 Demo-deployment (variant av samme runbook)
+
+Når du skal sette opp en **demo-instans** for å vise potensielle kunder:
+
+### Forskjeller fra vanlig kunde-deploy
+
+1. **Bruk kallenavn `demo`** og opprett `public/clients/demo.json`
+2. **I JSON-fila, sett:**
+   ```json
+   {
+     "demoMode": true,
+     "demoAnchorWeek": 18,
+     "taskTypes": { ... },
+     "holidays": { ... }
+   }
+   ```
+   - `demoMode: true` → viser oransje "DEMO"-chip i header, skjuler "Slett alle oppgaver"-knappen i Settings (Faresone)
+   - `demoAnchorWeek: 18` → app åpner direkte på mandag i ISO-uke 18 (juster til den uka demo-dataene dine ligger i)
+3. **Brand:** Velg en nøytral brand, f.eks. `NEXT_PUBLIC_BRAND_NAME=KoDo Planner Demo`
+4. **Vercel-prosjekt:** `planner-demo`
+5. **Upstash:** Egen separat database (`planner-demo-kv`)
+
+### Etter første deploy — fyll inn demo-data
+
+1. Logg inn på `https://planner-demo.vercel.app`
+2. Lag pene, kuraterte oppgaver i uke `demoAnchorWeek` og noen uker rundt:
+   - Ulike task-typer for fargevariasjon
+   - Realistiske titler ("Møte med Anders K.", "Kvartalsrapport", "LinkedIn outreach")
+   - Noen med beskrivelser
+   - Noen med estimater
+   - Noen med dependencies (én "venter på" en annen)
+   - Noen markert som ferdig så grønne hakene synes
+3. Test selv at app-en føles levende og pen
+
+### Lag "demo-perfect-state" backup
+
+1. **Innstillinger → Last ned backup**
+2. Filen havner i Downloads — gi den et fast navn:
+   ```
+   demo-perfect-state.json
+   ```
+3. Lagre filen et trygt sted (Dropbox, iCloud, hvor som helst)
+
+### Workflow før hver demo med interessent
+
+1. Send link → `https://planner-demo.vercel.app`
+2. Etter de er ferdige (de kan ha togglet ferdig, redigert, opprettet nye, slettet):
+   - **Innstillinger → Gjenopprett fra backup**
+   - Velg `demo-perfect-state.json`
+   - Bekreft i dialogen → demo er fresh igjen om 3 sekunder
+
+### Hva interessenten kan og ikke kan i demo-modus
+
+| Handling | Tillatt? |
+|---|---|
+| Opprette ny oppgave | ✅ |
+| Redigere oppgave | ✅ |
+| **Slette enkelt-oppgave** | ✅ (føles ekte) |
+| Toggle ferdig/ikke-ferdig | ✅ |
+| Drag-and-drop | ✅ |
+| Søk | ✅ |
+| Alle visninger (Uke/Måned/Liste) | ✅ |
+| Last ned backup | ✅ |
+| **Reset DB ("Slett alle oppgaver")** | ❌ skjult |
+
+> 💡 Dette gir interessenten en **realistisk opplevelse** — hen kan rote, slette, lage — men kan ikke nuke hele databasen og ødelegge for neste demo.
+
+---
+
 ## 🆘 Vanlige feilmeldinger
 
 | Feil | Årsak | Fix |
@@ -261,4 +330,4 @@ Ko|Do Consult
 
 ---
 
-_Versjon: v2.1 · Sist oppdatert: 25. apr 2026_
+_Versjon: v4.5.3 · Sist oppdatert: 26. apr 2026_

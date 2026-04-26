@@ -1,5 +1,10 @@
 # 🚀 Ny kunde på KoDo Planner — Runbook
 
+> ⚠️ **MERK (apr 2026):** Dette er det opprinnelige planleggings-dokumentet fra før implementering.
+> JSONBin er erstattet av **Upstash Redis**, og **Google Auth er ikke implementert ennå** (planlagt v5.0).
+> For den faktiske, oppdaterte deploy-runbooken, se `/DEPLOY_NEW_CLIENT.md`.
+> Denne filen beholdes som arkitektur-referanse og bakgrunns-tankegang.
+
 _Teoretisk onboardings-dokument. Leses før implementering._
 _Mål: Fra "ny kunde signert" til "live på egen URL" på ≤ 30 min._
 
