@@ -365,6 +365,9 @@ export default function Home() {
             return next;
           });
         }}
+        onResetAll={async () => {
+          await saveAll([]);
+        }}
       />
 
       <SearchOverlayMobile

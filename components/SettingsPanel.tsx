@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle, ChevronDown, DatabaseBackup, Upload } from "lucide-react";
+import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle, ChevronDown, DatabaseBackup, Upload, Trash2 } from "lucide-react";
 import type { AppConfig } from "@/lib/config";
 import type { BackgroundMode } from "@/hooks/useUserPrefs";
 import type { Todo } from "@/lib/types";
@@ -9,6 +9,7 @@ import type { Branding } from "@/lib/branding";
 import { getActiveTaskTypes } from "@/hooks/useAppConfig";
 import { generateIcs, downloadIcs } from "@/lib/ics";
 import { downloadBackup, readBackupFile, getLastBackupAt, formatRelativeTime } from "@/lib/backup";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { toast } from "sonner";
 
 interface SettingsPanelProps {
@@ -30,6 +31,8 @@ interface SettingsPanelProps {
   branding: Branding;
   /** Brukes for å gjenopprette todos fra en backup-fil */
   onRestore: (todos: Todo[]) => Promise<void>;
+  /** Brukes for å slette ALLE todos (reset) */
+  onResetAll: () => Promise<void>;
 }
 
 export function SettingsPanel({
@@ -46,6 +49,7 @@ export function SettingsPanel({
   configError,
   branding,
   onRestore,
+  onResetAll,
 }: SettingsPanelProps) {
   const activeTypes = getActiveTaskTypes(config);
   const [exportTypes, setExportTypes] = useState<Set<string>>(
@@ -63,6 +67,15 @@ export function SettingsPanel({
     typeof window !== "undefined" ? getLastBackupAt() : null,
   );
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  // Pending restore: backup som er parset og venter på bekreftelse
+  const [pendingRestore, setPendingRestore] = useState<{
+    todos: Todo[];
+    todoCount: number;
+    exportedAt: string;
+  } | null>(null);
+  // Reset-confirm dialog
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   if (!open) return null;
 
@@ -118,24 +131,38 @@ export function SettingsPanel({
       return;
     }
 
-    const exportedDate = new Date(backup.exportedAt);
-    const dateStr = isNaN(exportedDate.getTime())
-      ? "ukjent dato"
-      : exportedDate.toLocaleString("nb-NO", { dateStyle: "medium", timeStyle: "short" });
+    // Åpne pen confirm-dialog i stedet for window.confirm
+    setPendingRestore({
+      todos: backup.todos,
+      todoCount: backup.todoCount,
+      exportedAt: backup.exportedAt,
+    });
+  };
 
-    const confirmed = window.confirm(
-      `Dette vil ERSTATTE alle dine ${todos.length} nåværende oppgaver med ${backup.todoCount} oppgaver fra backup datert ${dateStr}.\n\nDenne handlingen kan ikke angres.\n\nFortsette?`,
-    );
-    if (!confirmed) return;
-
+  const confirmRestore = async () => {
+    if (!pendingRestore) return;
     setIsRestoring(true);
     try {
-      await onRestore(backup.todos);
-      toast.success(`Gjenopprettet ${backup.todoCount} oppgaver`);
+      await onRestore(pendingRestore.todos);
+      toast.success(`Gjenopprettet ${pendingRestore.todoCount} oppgaver`);
+      setPendingRestore(null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Kunne ikke gjenopprette");
     } finally {
       setIsRestoring(false);
+    }
+  };
+
+  const confirmReset = async () => {
+    setIsResetting(true);
+    try {
+      await onResetAll();
+      toast.success("Alle oppgaver slettet");
+      setResetDialogOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Kunne ikke slette oppgaver");
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -467,6 +494,29 @@ export function SettingsPanel({
               bekrefte før det skjer.
             </span>
           </div>
+
+          {/* Faresone — reset */}
+          <div className="mt-5 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[11px] font-semibold text-rose-300/90 uppercase tracking-wider">
+                Faresone
+              </h4>
+            </div>
+            <p className="text-[11px] text-white/50 mb-3 leading-relaxed">
+              Slett alle oppgaver permanent. Nyttig hvis du har testet med demo-data og vil starte
+              i prod med blanke ark. <strong className="text-amber-200">Ta backup først</strong>{" "}
+              hvis du vil ha mulighet til å angre.
+            </p>
+            <button
+              data-testid="backup-reset-btn"
+              onClick={() => setResetDialogOpen(true)}
+              disabled={todos.length === 0 || isResetting}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-400/30 hover:border-rose-400/50 text-rose-200 hover:text-rose-100 text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="h-4 w-4" />
+              {todos.length === 0 ? "Ingen oppgaver å slette" : `Slett alle ${todos.length} oppgaver`}
+            </button>
+          </div>
         </section>
 
         <div className="mt-6 pt-4 border-t border-white/10 text-[11px] text-white/40">
@@ -477,6 +527,70 @@ export function SettingsPanel({
           .
         </div>
       </div>
+
+      {/* ============== Confirm dialogs ============== */}
+      <ConfirmDialog
+        open={pendingRestore !== null}
+        title="Gjenopprett fra backup?"
+        description={
+          pendingRestore && (
+            <>
+              Dette vil <strong className="text-white">erstatte alle</strong> dine{" "}
+              <span className="tabular-nums">{todos.length}</span> nåværende{" "}
+              {todos.length === 1 ? "oppgave" : "oppgaver"} med{" "}
+              <span className="tabular-nums">{pendingRestore.todoCount}</span>{" "}
+              {pendingRestore.todoCount === 1 ? "oppgave" : "oppgaver"} fra backup datert{" "}
+              <span className="text-white/90">
+                {(() => {
+                  const d = new Date(pendingRestore.exportedAt);
+                  return isNaN(d.getTime())
+                    ? "ukjent dato"
+                    : d.toLocaleString("nb-NO", { dateStyle: "medium", timeStyle: "short" });
+                })()}
+              </span>
+              .
+              <br />
+              <span className="text-amber-200/90 mt-2 inline-block">
+                Denne handlingen kan ikke angres.
+              </span>
+            </>
+          )
+        }
+        confirmLabel="Ja, gjenopprett"
+        cancelLabel="Avbryt"
+        variant="destructive"
+        busy={isRestoring}
+        onConfirm={confirmRestore}
+        onCancel={() => {
+          if (!isRestoring) setPendingRestore(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={resetDialogOpen}
+        title="Slett alle oppgaver?"
+        description={
+          <>
+            Dette vil <strong className="text-white">permanent slette</strong> alle{" "}
+            <span className="tabular-nums">{todos.length}</span>{" "}
+            {todos.length === 1 ? "oppgave" : "oppgaver"} fra databasen.
+            <br />
+            <br />
+            <span className="text-amber-200/90">
+              Denne handlingen kan ikke angres. Sørg for at du har tatt en backup hvis du vil
+              kunne gjenopprette senere.
+            </span>
+          </>
+        }
+        confirmLabel="Ja, slett alt"
+        cancelLabel="Avbryt"
+        variant="destructive"
+        busy={isResetting}
+        onConfirm={confirmReset}
+        onCancel={() => {
+          if (!isResetting) setResetDialogOpen(false);
+        }}
+      />
     </div>
   );
 }
