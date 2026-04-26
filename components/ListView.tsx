@@ -173,9 +173,9 @@ export function ListView({
         </div>
       </div>
 
-      {/* Tabell */}
+      {/* Tabell — glass-bakgrunn full bredde, tabell-innhold venstrejustert */}
       <div className="flex-1 overflow-auto p-4 min-h-0">
-        <div className="max-w-3xl bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
           {sorted.length === 0 ? (
             <div
               data-testid="list-empty"
@@ -198,7 +198,7 @@ export function ListView({
               )}
             </div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-auto min-w-[720px] text-sm">
               <thead className="bg-white/5 border-b border-white/10">
                 <tr className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">
                   <th className="px-3 py-2.5 w-10 text-center">
@@ -209,7 +209,7 @@ export function ListView({
                     active={sortKey === "date"}
                     onClick={() => handleSort("date")}
                     icon={renderSortIcon("date")}
-                    className="w-32 text-left"
+                    className="w-28 text-left whitespace-nowrap"
                   >
                     Dato / Tid
                   </HeaderCell>
@@ -219,7 +219,7 @@ export function ListView({
                     active={sortKey === "type"}
                     onClick={() => handleSort("type")}
                     icon={renderSortIcon("type")}
-                    className="w-40 text-left"
+                    className="w-40 text-left whitespace-nowrap"
                   >
                     Type
                   </HeaderCell>
@@ -273,7 +273,7 @@ export function ListView({
                       </td>
 
                       {/* Dato + slot */}
-                      <td className="px-3 py-3 text-white">
+                      <td className="px-3 py-3 text-white whitespace-nowrap">
                         <div className="font-medium tabular-nums">
                           {format(dateObj, "d. MMM", { locale: nb })}
                         </div>

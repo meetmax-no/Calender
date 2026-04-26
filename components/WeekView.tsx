@@ -149,69 +149,65 @@ export function WeekView({
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 min-h-0">
-        <div className="bg-white/[0.02] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl h-full flex flex-col min-h-[520px]">
-          {/* Dager-header */}
-          <div className="grid grid-cols-[70px_repeat(7,1fr)] border-b border-white/15 flex-shrink-0">
-            <div className="p-2" />
-            {weekDays.map((date) => {
-              const marker = getDayMarker(date);
-              const today = isToday(date);
-              return (
+        <div className="bg-white/[0.02] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl h-full grid grid-cols-[70px_repeat(7,minmax(0,1fr))] grid-rows-[auto_repeat(4,minmax(105px,1fr))] min-h-[520px]">
+          {/* Header rad: tom + 7 dager */}
+          <div className="border-b border-white/15" />
+          {weekDays.map((date) => {
+            const marker = getDayMarker(date);
+            const today = isToday(date);
+            return (
+              <div
+                key={`hdr-${toDateKey(date)}`}
+                data-testid={`week-day-header-${toDateKey(date)}`}
+                className="p-2 text-center border-b border-l border-white/10 min-w-0"
+              >
+                <div className="text-[10px] font-semibold tracking-wider text-white/60">
+                  {formatWeekdayShort(date)}
+                </div>
                 <div
-                  key={toDateKey(date)}
-                  data-testid={`week-day-header-${toDateKey(date)}`}
-                  className="p-2 text-center border-l border-white/10"
+                  className={`mt-1 mx-auto w-8 h-8 flex items-center justify-center text-base font-semibold relative ${
+                    today
+                      ? "bg-blue-500 rounded-full text-white shadow-lg"
+                      : "text-white"
+                  }`}
                 >
-                  <div className="text-[10px] font-semibold tracking-wider text-white/60">
-                    {formatWeekdayShort(date)}
-                  </div>
-                  <div
-                    className={`mt-1 mx-auto w-8 h-8 flex items-center justify-center text-base font-semibold relative ${
-                      today
-                        ? "bg-blue-500 rounded-full text-white shadow-lg"
-                        : "text-white"
-                    }`}
-                  >
-                    {formatDayOfMonth(date)}
-                    {marker && !today && (
-                      <span
-                        className={`absolute -bottom-0.5 h-1 w-1 rounded-full ${
-                          marker.type === "holiday" ? "bg-rose-300" : "bg-amber-300"
-                        }`}
-                      />
-                    )}
-                  </div>
-                  {marker && (
-                    <div
-                      className={`text-[9px] mt-1 leading-tight truncate px-0.5 font-medium ${
-                        marker.type === "holiday" ? "text-rose-200" : "text-amber-200"
+                  {formatDayOfMonth(date)}
+                  {marker && !today && (
+                    <span
+                      className={`absolute -bottom-0.5 h-1 w-1 rounded-full ${
+                        marker.type === "holiday" ? "bg-rose-300" : "bg-amber-300"
                       }`}
-                      title={marker.label}
-                    >
-                      {marker.label}
-                    </div>
+                    />
                   )}
                 </div>
-              );
-            })}
-          </div>
+                {marker && (
+                  <div
+                    className={`text-[9px] mt-1 leading-tight truncate px-0.5 font-medium ${
+                      marker.type === "holiday" ? "text-rose-200" : "text-amber-200"
+                    }`}
+                    title={marker.label}
+                  >
+                    {marker.label}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {/* Tidslukke-rader */}
-          <div className="flex-1 grid grid-cols-[70px_repeat(7,1fr)] grid-rows-4">
-            {TIME_SLOTS.map((slot) => (
-              <SlotRow
-                key={slot}
-                slot={slot}
-                weekDays={weekDays}
-                getTodos={getTodosForCell}
-                getDayMarker={getDayMarker}
-                config={config}
-                onCellClick={onCellClick}
-                onTodoClick={onTodoClick}
-                onTodoToggle={onTodoToggle}
-              />
-            ))}
-          </div>
+          {TIME_SLOTS.map((slot) => (
+            <SlotRow
+              key={slot}
+              slot={slot}
+              weekDays={weekDays}
+              getTodos={getTodosForCell}
+              getDayMarker={getDayMarker}
+              config={config}
+              onCellClick={onCellClick}
+              onTodoClick={onTodoClick}
+              onTodoToggle={onTodoToggle}
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -256,7 +252,7 @@ function SlotRow({
           <div
             key={cellKey}
             data-testid={`cell-${cellKey}`}
-            className={`border-t border-l border-white/10 p-1.5 transition group relative min-h-[105px] ${
+            className={`border-t border-l border-white/10 p-1.5 transition group relative min-w-0 ${
               marker?.type === "holiday" ? "bg-rose-400/5" : ""
             } ${today ? "bg-blue-400/5" : ""}`}
           >

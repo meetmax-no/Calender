@@ -12,7 +12,7 @@ export type ModalMode =
   | { kind: "create"; initialDate?: string; initialSlot?: TimeSlot; initialType?: string }
   | { kind: "edit"; todo: Todo };
 
-type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
+type RecurrenceFrequency = "daily" | "weekly" | "biweekly" | "triweekly" | "monthly";
 
 interface TaskModalProps {
   mode: ModalMode;
@@ -47,8 +47,10 @@ function expandDates(
   const result: string[] = [];
   for (let i = 0; i < count; i++) {
     let d: Date;
-    if (freq === "weekly") d = addDays(base, i * 7);
+    if (freq === "daily") d = addDays(base, i);
+    else if (freq === "weekly") d = addDays(base, i * 7);
     else if (freq === "biweekly") d = addDays(base, i * 14);
+    else if (freq === "triweekly") d = addDays(base, i * 21);
     else d = addMonths(base, i);
     result.push(d.toISOString().slice(0, 10));
   }
@@ -436,8 +438,10 @@ export function TaskModal({
                         onChange={(e) => setRecurFreq(e.target.value as RecurrenceFrequency)}
                         className="mt-1 w-full bg-white/5 border border-white/15 rounded-md px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-400/60"
                       >
+                        <option value="daily">Hver dag</option>
                         <option value="weekly">Hver uke</option>
                         <option value="biweekly">Hver 2. uke</option>
+                        <option value="triweekly">Hver 3. uke</option>
                         <option value="monthly">Månedlig</option>
                       </select>
                     </div>
