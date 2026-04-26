@@ -306,7 +306,7 @@ export default function Home() {
               statusCounts={statusCounts}
               onTodoEdit={handleTodoClick}
               onTodoToggle={handleTodoToggle}
-              onTodoDelete={demoMode ? undefined : handleDelete}
+              onTodoDelete={handleDelete}
               onCreateNew={() =>
                 setModalMode({ kind: "create", initialDate: toDateKey(anchorDate) })
               }
@@ -351,8 +351,8 @@ export default function Home() {
           allTodos={todos}
           onClose={() => setModalMode(null)}
           onSave={handleSave}
-          onDelete={demoMode ? undefined : handleDelete}
-          onDuplicate={demoMode ? undefined : handleDuplicate}
+          onDelete={handleDelete}
+          onDuplicate={handleDuplicate}
           onSaveRecurring={handleSaveRecurring}
         />
       )}
