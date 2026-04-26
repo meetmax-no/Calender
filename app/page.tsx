@@ -174,14 +174,19 @@ export default function Home() {
         className="object-cover"
         priority
       />
-      <div className="absolute inset-0 bg-black/30" />
+      {/* Overlay — mørkere og litt blur på mobil for å roe ned bakgrunnen */}
+      <div
+        className={`absolute inset-0 ${
+          isMobile ? "bg-black/65 backdrop-blur-[2px]" : "bg-black/30"
+        }`}
+      />
 
       <AppHeader status={status} onSettingsClick={() => setSettingsOpen(true)} />
 
       <main className="relative h-screen w-full pt-20 flex">
         <aside
           data-testid="app-sidebar"
-          className="hidden md:flex w-72 h-full bg-white/10 backdrop-blur-xl border-r border-white/20 rounded-tr-3xl flex-col"
+          className={`${isMobile ? "hidden" : "flex"} w-72 h-full bg-white/10 backdrop-blur-xl border-r border-white/20 rounded-tr-3xl flex-col`}
         >
           <div className="flex-1 p-5 flex flex-col gap-2 overflow-y-auto">
             <MiniCalendar
@@ -284,11 +289,19 @@ export default function Home() {
         onClick={() =>
           setModalMode({ kind: "create", initialDate: toDateKey(anchorDate) })
         }
-        className="md:hidden fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white shadow-2xl flex items-center justify-center transition"
+        className={`${isMobile ? "" : "hidden"} fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white shadow-2xl flex items-center justify-center transition`}
         aria-label="Ny oppgave"
       >
         <Plus className="h-6 w-6" strokeWidth={2.5} />
       </button>
+
+      {/* Mobil-footer: branding + versjon */}
+      <div
+        data-testid="mobile-footer"
+        className={`${isMobile ? "" : "hidden"} fixed bottom-0 left-0 right-0 z-10 px-4 py-2 text-center text-[10px] text-white/40 font-medium tracking-wider select-none pointer-events-none bg-gradient-to-t from-black/40 to-transparent`}
+      >
+        {branding.name} · By Ko | Do · Consult · {branding.version}
+      </div>
 
       {modalMode && (
         <TaskModal

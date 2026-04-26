@@ -4,6 +4,7 @@ import { Search, Settings, Menu } from "lucide-react";
 import type { SyncStatus } from "@/hooks/useTodos";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { getBranding } from "@/lib/branding";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface AppHeaderProps {
   status: SyncStatus;
@@ -12,6 +13,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
   const branding = getBranding();
+  const isMobile = useIsMobile();
   const renderStatus = () => {
     if (status === "loading" || status === "saving") {
       return (
@@ -54,23 +56,23 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
       <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <button
           data-testid="header-menu-btn"
-          className="hidden md:block text-white/80 hover:text-white transition"
+          className={`${isMobile ? "hidden" : "block"} text-white/80 hover:text-white transition`}
           aria-label="Meny"
         >
           <Menu className="h-5 w-5" />
         </button>
         <div className="flex items-baseline gap-2 min-w-0">
           <h1 className="text-base sm:text-xl font-semibold text-white drop-shadow-lg tracking-tight truncate">
-            <span className="hidden sm:inline">{branding.tagline}</span>
-            <span className="hidden sm:inline mx-2 text-white/50">·</span>
-            <span className="font-semibold text-white/85">{branding.name}</span>
+            <span className="text-white/85">{branding.tagline}</span>
+            <span className="mx-1.5 sm:mx-2 text-white/50">·</span>
+            <span className="font-semibold text-white">{branding.name}</span>
           </h1>
-          <span className="hidden sm:inline">{renderStatus()}</span>
+          {!isMobile && renderStatus()}
         </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-        <div className="hidden lg:block relative">
+        <div className={`${isMobile ? "hidden" : "block"} relative`}>
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/70" />
           <input
             data-testid="header-search-input"
@@ -89,7 +91,7 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
         </button>
         <div
           data-testid="header-avatar"
-          className="hidden sm:flex h-9 w-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 items-center justify-center text-white text-sm font-semibold shadow-lg"
+          className={`${isMobile ? "hidden" : "flex"} h-9 w-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 items-center justify-center text-white text-sm font-semibold shadow-lg`}
         >
           M
         </div>

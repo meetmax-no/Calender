@@ -128,13 +128,18 @@ export function ListView({
       {/* Toolbar */}
       <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/10 flex-shrink-0 gap-2 sm:gap-3 flex-wrap">
         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-          <ListTodo className="h-5 w-5 text-white/70 flex-shrink-0" />
-          <h2 data-testid="list-title" className="text-base sm:text-lg font-semibold text-white truncate">
-            {isMobile ? "Oppgaver" : "Alle oppgaver"}
-          </h2>
+          {!isMobile && <ListTodo className="h-5 w-5 text-white/70 flex-shrink-0" />}
+          {!isMobile && (
+            <h2
+              data-testid="list-title"
+              className="text-base sm:text-lg font-semibold text-white truncate"
+            >
+              Alle oppgaver
+            </h2>
+          )}
 
           {/* Status-filter */}
-          <div className="ml-1 sm:ml-3">
+          <div className={isMobile ? "" : "ml-3"}>
             <StatusFilterBar
               value={statusFilter}
               onChange={onStatusFilterChange}
@@ -165,41 +170,45 @@ export function ListView({
           )}
 
           {/* Desktop-knapper */}
-          <button
-            data-testid="list-create-new-btn"
-            onClick={onCreateNew}
-            className="hidden sm:flex px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow transition items-center gap-1.5"
-          >
-            <Plus className="h-4 w-4" />
-            Ny oppgave
-          </button>
-
-          <button
-            data-testid="list-print-btn"
-            onClick={() => window.print()}
-            className="hidden sm:flex px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition items-center gap-1.5 border border-white/15"
-            title="Skriv ut listen"
-          >
-            <Printer className="h-4 w-4" />
-            Skriv ut
-          </button>
-
-          <div className="hidden md:flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5 print:hidden">
-            {(["week", "month", "list"] as ViewMode[]).map((m) => (
+          {!isMobile && (
+            <>
               <button
-                key={m}
-                data-testid={`view-mode-${m}`}
-                onClick={() => onViewModeChange(m)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition ${
-                  viewMode === m
-                    ? "bg-white/20 text-white"
-                    : "text-white/60 hover:text-white hover:bg-white/10"
-                }`}
+                data-testid="list-create-new-btn"
+                onClick={onCreateNew}
+                className="px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow transition flex items-center gap-1.5"
               >
-                {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
+                <Plus className="h-4 w-4" />
+                Ny oppgave
               </button>
-            ))}
-          </div>
+
+              <button
+                data-testid="list-print-btn"
+                onClick={() => window.print()}
+                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition flex items-center gap-1.5 border border-white/15"
+                title="Skriv ut listen"
+              >
+                <Printer className="h-4 w-4" />
+                Skriv ut
+              </button>
+
+              <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5 print:hidden">
+                {(["week", "month", "list"] as ViewMode[]).map((m) => (
+                  <button
+                    key={m}
+                    data-testid={`view-mode-${m}`}
+                    onClick={() => onViewModeChange(m)}
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition ${
+                      viewMode === m
+                        ? "bg-white/20 text-white"
+                        : "text-white/60 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {m === "week" ? "Uke" : m === "month" ? "Måned" : "Liste"}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -251,7 +260,7 @@ export function ListView({
       )}
 
       {/* Tabell / kort-liste */}
-      <div className="flex-1 overflow-auto p-3 sm:p-4 min-h-0 pb-24 md:pb-4">
+      <div className={`flex-1 overflow-auto p-3 sm:p-4 min-h-0 ${isMobile ? "pb-32" : "pb-4"}`}>
         <div className={isMobile ? "" : "bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl overflow-hidden"}>
           {sorted.length === 0 ? (
             <div
