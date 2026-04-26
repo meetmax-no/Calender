@@ -45,31 +45,61 @@ sharedWith?: string[]; // Reservert for fremtidig "delt med X"
 ---
 
 ### Automatisk backup via Vercel Cron + GitHub
-- **Hvorfor:** Brukeren forventer i 2026 at data backes opp automatisk uten manuell innsats. Manuell backup-knapp er fortsatt nyttig for ad-hoc, men daglig automatikk gir trygghet.
-- **Arkitektur (anbefalt):**
+- **Hvorfor:** Brukeren forventer i 2026 at data backes opp automatisk uten manuell innsats. Manuell backup-knapp er fortsatt nyttig for ad-hoc, men daglig automatikk gir trygghet. Brukeren har eksplisitt sagt: *"Hvis jeg bruker dette aktivt vil jeg få panikk om det crasher"* → P0 ved daglig bruk.
+- **Arkitektur (anbefalt — multi-tenant ready):**
   - Vercel Cron-jobb kjører `/api/cron/backup` hver natt kl 03:00 UTC
-  - Funksjonen henter todos fra Upstash, pakker som JSON
+  - Funksjonen leser `NEXT_PUBLIC_CLIENT_CONFIG` env-var for å identifisere kunden
+  - Henter todos fra Upstash (hver kundes deployment peker på sin egen Upstash-instans)
   - Skriver til GitHub via REST API til en **separat `backups`-branch** i samme repo (kritisk: ikke main, ellers trigges ny Vercel-deploy hver natt)
-  - Filsti: `snapshots/YYYY-MM-DD.json`
-  - Sletter filer eldre enn 7 dager i samme jobb (FIFO-rotasjon)
-- **Setup-krav:**
-  - GitHub Personal Access Token med `repo`-scope, lagret som Vercel env var `GITHUB_BACKUP_TOKEN`
-  - `vercel.json` med cron-config: `{"crons":[{"path":"/api/cron/backup","schedule":"0 3 * * *"}]}`
+  - Filsti per kunde: `<klient>/<YYYY-MM-DD>.json` — f.eks. `meetmax/2026-04-26.json`
+  - Sletter filer eldre enn 7 dager kun i `<klient>/`-mappa (FIFO-rotasjon, isolert per kunde)
+
+- **Multi-tenant struktur:**
+```
+GitHub repo (Calender)
+├── main branch         ← all kode
+└── backups branch      ← alle kunders backuper, isolert i mapper
+      ├── meetmax/
+      │   ├── 2026-04-26.json
+      │   └── ... (siste 7 dager)
+      ├── kunde2/
+      │   └── ... (siste 7 dager)
+      └── kunde3/
+          └── ...
+```
+  Hver Vercel-deployment har sin egen `NEXT_PUBLIC_CLIENT_CONFIG` env-var → cron-funksjonen bruker den som mappenavn-prefix i alle GitHub-operasjoner. Kundene er logisk isolert selv om de deler repo og branch.
+
+- **Race condition (kun reelle problem):**
+  Hvis to kunder committer samtidig kan GitHub gi 409 Conflict til den ene. Løses med enkel retry-logikk (3–5 sekunders ventetid, prøv inntil 3 ganger). Praktisk talt null risiko for vedvarende konflikt så lenge antall kunder < ~50.
+
+- **Setup-krav (delt for alle deployments):**
+  - GitHub Personal Access Token med `repo`-scope, lagret som Vercel env var `GITHUB_BACKUP_TOKEN` på hver deployment
+  - `vercel.json` i main-branchen: `{"crons":[{"path":"/api/cron/backup","schedule":"0 3 * * *"}]}`
   - Opprett `backups`-branch i repoet manuelt én gang
-  - Ny route `/api/cron/backup` (sjekk `Authorization: Bearer $CRON_SECRET` for sikkerhet)
+  - Ny route `/api/cron/backup` (sjekk `Authorization: Bearer $CRON_SECRET` for sikkerhet — Vercel sender denne automatisk for cron-kall)
+
+- **Onboarding av ny kunde (per kunde):**
+  - Sett `NEXT_PUBLIC_CLIENT_CONFIG`, `UPSTASH_*`, `GITHUB_BACKUP_TOKEN` i Vercel env-vars
+  - Ingen ekstra repo-jobb — backup-mappa opprettes automatisk første gang cron kjører
+
 - **UI-utvidelse i Settings:**
-  - Ny seksjon "Tidligere snapshots" som lister filer fra `backups`-branchen via GitHub API
+  - Ny seksjon "Tidligere snapshots" som lister filer fra `backups/<klient>/` via GitHub API
+  - Kun aktiv kundes egne backuper er synlige (hentes med `NEXT_PUBLIC_CLIENT_CONFIG`-prefix)
   - Restore-knapp per dato (gjenbruker eksisterende `onRestore`)
+
 - **Bonus av denne arkitekturen:**
-  - GitHub gir versjonshistorikk gratis — du kan diffe dag-for-dag og se hvordan dataene endret seg
+  - GitHub gir versjonshistorikk gratis — diff-visning dag-for-dag per kunde
   - Backup overlever selv om Upstash skulle krasje
-  - Null kostnad utover Vercel Hobby-planen
-- **Estimert jobb:** ~2 timer
+  - Null kostnad utover Vercel Hobby-planen (så lenge man holder seg innenfor 2 cron-jobs)
+
+- **Estimert jobb:** ~3 timer (multi-tenant-versjonen, inkludert retry-logikk og UI)
 - **Rekkefølge:** Bygg ETTER Google Auth, så backup-formatet kan inkludere `ownerId` og `visibility` fra start (slipper migrasjon)
 - **Vurderte men avviste alternativer:**
   - ❌ E-post via Resend — bruker syns det "ikke er seriøst nok"
   - ❌ Commit til main-branch — trigger ny Vercel-deploy hver natt
   - ❌ S3/Dropbox/Google Drive — ekstra OAuth-kompleksitet uten klar fordel
+  - ❌ Eget backup-repo per kunde — mer admin-jobb ved onboarding, vanskeligere å holde oversikt enn felles repo med isolerte mapper
+  - ❌ Snapshots i Upstash selv — overlever ikke om Upstash krasjer (samme single point of failure)
 
 ---
 
