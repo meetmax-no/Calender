@@ -15,27 +15,30 @@ Sentralt sted for ideer som ikke er aktive akkurat nå. Henter herfra ved neste 
 #### Nødvendig samtidig: Synlighet per oppgave (privat/team)
 Når Auth innføres må det også finnes synlighets-kontroll på hver oppgave, ellers blir det rotete. Foreslått modell:
 
-- **Privat** 🔒 — kun synlig for den som opprettet (default for nye oppgaver?)
-- **Team** 👥 — synlig for alle som har tilgang til samme klient-config
-- **(Mulig senere) Delt med spesifikke brukere** 👤👤 — pick-list av navngitte teammedlemmer
+- **Privat** — kun synlig for den som opprettet (default for nye oppgaver)
+- **Team** — synlig for alle som har tilgang til samme klient-config
+- **(Next level — IKKE i første runde)** Delt med spesifikke brukere — pick-list av navngitte teammedlemmer
 
 **Schema-endring i `Todo`:**
 ```ts
 visibility: "private" | "team";
 ownerId: string;       // Hvem opprettet oppgaven
-sharedWith?: string[]; // Frivillig — for fremtidig "delt med X" 
+sharedWith?: string[]; // Reservert for fremtidig "delt med X"
 ```
+
+**Default-policy:** Privat som default. Tryggere å åpne en oppgave senere enn å oppdage at en privat tanke ble synlig.
+
+**Visuelt ikon for private oppgaver — VIKTIG:**
+- ⚠️ IKKE bruk `Lock`-ikonet — det brukes allerede til dependency-blokkering
+- Forslag: åttekant (octagon) med "P" inni, grønn farge
+- Kan bruke `Octagon` fra lucide-react som basis + en bokstav-overlay, eller en custom SVG
+- Plasseres diskret oppe-til-høyre på todo-kortet i Uke/Måned-visning, og som inline-chip i Liste-visning
 
 **UI-konsekvenser:**
 - Toggle/dropdown i TaskModal ("Synlig for: meg / hele teamet")
-- Visuell markør på private oppgaver (lite hengelås-ikon)
+- Grønn P-octagon på private oppgaver i alle visninger
 - Filter-sjekkbokser i sidebar: "Mine oppgaver / Team-oppgaver / Alle"
 - API må filtrere bort private oppgaver fra andre brukere
-
-**Default-policy å velge:**
-- Alt er Team som default → enklest for små team, men fare for å lekke noe privat
-- Alt er Privat som default → tryggere, men team-oppgaver krever ekstra klikk
-- *Min anbefaling:* Privat som default. Det er alltid tryggere å åpne en oppgave senere enn å oppdage at en privat tanke ble synlig.
 
 **Estimert jobb:** ~1.5 timer på toppen av Auth-jobben (dvs. samlet ca. 4 timer for full Auth + visibility)
 
