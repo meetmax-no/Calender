@@ -262,23 +262,28 @@ export function ListView({
                       <td className="px-3 py-3 text-center">
                         <button
                           data-testid={`list-toggle-${t.id}`}
-                          onClick={() => onTodoToggle(t.id)}
-                          disabled={blocked}
+                          onClick={() => {
+                            if (blocked && dep) {
+                              onTodoEdit(dep);
+                              return;
+                            }
+                            onTodoToggle(t.id);
+                          }}
                           aria-label={
                             blocked
-                              ? `Blokkert — venter på ${dep?.title}`
+                              ? `Blokkert — klikk for å åpne "${dep?.title}"`
                               : t.completed
                                 ? "Marker ikke ferdig"
                                 : "Marker ferdig"
                           }
                           title={
                             blocked
-                              ? `Blokkert — venter på "${dep?.title}"`
+                              ? `Blokkert — klikk for å åpne "${dep?.title}"`
                               : undefined
                           }
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
                             blocked
-                              ? "border-amber-300/50 bg-amber-500/10 cursor-not-allowed"
+                              ? "border-amber-300/50 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer"
                               : t.completed
                               ? "bg-emerald-500 border-emerald-500"
                               : "border-white/30 hover:border-white/60"

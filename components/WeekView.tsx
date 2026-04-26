@@ -291,23 +291,27 @@ function SlotRow({
                         data-testid={`todo-toggle-${t.id}`}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (blocked && dep) {
+                            onTodoClick(dep);
+                            return;
+                          }
                           onTodoToggle(t.id);
                         }}
                         className={`flex-shrink-0 w-4 h-4 rounded-full border flex items-center justify-center transition ${
                           blocked
-                            ? "border-white/40 bg-black/30 cursor-not-allowed"
+                            ? "border-amber-300/60 hover:border-amber-200 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer"
                             : "border-white/60 hover:border-white bg-black/10 hover:bg-black/20"
                         }`}
                         aria-label={
                           blocked
-                            ? `Blokkert — venter på ${dep?.title ?? "en annen oppgave"}`
+                            ? `Blokkert — klikk for å åpne "${dep?.title ?? "blokkerende oppgave"}"`
                             : t.completed
                               ? "Marker ikke ferdig"
                               : "Marker ferdig"
                         }
                         title={
                           blocked
-                            ? `Blokkert — venter på "${dep?.title ?? "en annen oppgave"}"`
+                            ? `Blokkert — klikk for å åpne "${dep?.title ?? "blokkerende oppgave"}"`
                             : t.completed
                               ? "Marker som ikke-ferdig"
                               : "Marker som ferdig"
