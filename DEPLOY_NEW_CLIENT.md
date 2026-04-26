@@ -137,9 +137,15 @@ git push
    - **Primary Region:** *Frankfurt (West)* (lavest latency for Norge)
    - **Read Regions:** (la stå tom)
    - **Eviction:** *Off* (vi vil ikke at oppgaver slettes automatisk)
-   - **Plan:** **Free** (500 000 kommandoer/mnd er mer enn nok)
+   - **Plan:** **Pay-as-you-go** ⚠️ *Ikke Free!*
+     - Free tier tillater kun **1 database per Upstash-konto**
+     - Pay-as-you-go: $0,20 per 100k commands + $0,25/mnd per database
+     - Realistisk per KoDo-kunde: **~$1/mnd** total
+     - Bruk Free **kun** for første kunde/demo hvis du ikke har andre DB-er
 5. Klikk **Create**
 6. **Custom Prefix:** la stå tom (verdi blir "STORAGE_..." automatisk — vi VIL ha defaults)
+
+> 💡 **Modell B-variant:** Hvis kunden eier sin egen Upstash-konto, kan **deres** DB stå på Free tier (siden det er deres første og eneste).
 
 ---
 
