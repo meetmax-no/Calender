@@ -12,6 +12,33 @@ Sentralt sted for ideer som ikke er aktive akkurat nå. Henter herfra ved neste 
 - **Estimert jobb:** 2–3 timer
 - **Avhengighet:** Brukeren må først bestemme om dette er solo-app eller team-app
 
+#### Nødvendig samtidig: Synlighet per oppgave (privat/team)
+Når Auth innføres må det også finnes synlighets-kontroll på hver oppgave, ellers blir det rotete. Foreslått modell:
+
+- **Privat** 🔒 — kun synlig for den som opprettet (default for nye oppgaver?)
+- **Team** 👥 — synlig for alle som har tilgang til samme klient-config
+- **(Mulig senere) Delt med spesifikke brukere** 👤👤 — pick-list av navngitte teammedlemmer
+
+**Schema-endring i `Todo`:**
+```ts
+visibility: "private" | "team";
+ownerId: string;       // Hvem opprettet oppgaven
+sharedWith?: string[]; // Frivillig — for fremtidig "delt med X" 
+```
+
+**UI-konsekvenser:**
+- Toggle/dropdown i TaskModal ("Synlig for: meg / hele teamet")
+- Visuell markør på private oppgaver (lite hengelås-ikon)
+- Filter-sjekkbokser i sidebar: "Mine oppgaver / Team-oppgaver / Alle"
+- API må filtrere bort private oppgaver fra andre brukere
+
+**Default-policy å velge:**
+- Alt er Team som default → enklest for små team, men fare for å lekke noe privat
+- Alt er Privat som default → tryggere, men team-oppgaver krever ekstra klikk
+- *Min anbefaling:* Privat som default. Det er alltid tryggere å åpne en oppgave senere enn å oppdage at en privat tanke ble synlig.
+
+**Estimert jobb:** ~1.5 timer på toppen av Auth-jobben (dvs. samlet ca. 4 timer for full Auth + visibility)
+
 ---
 
 ## 🟢 P2 — Mulige forbedringer (avhenger av faktisk bruk)
