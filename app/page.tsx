@@ -20,6 +20,8 @@ import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { toDateKey } from "@/lib/date";
 import { getBranding } from "@/lib/branding";
+import { isBlocked, getDependency, countBlocked } from "@/lib/deps";
+import { toast } from "sonner";
 
 const DEFAULT_BG =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
@@ -98,6 +100,18 @@ export default function Home() {
   };
 
   const handleTodoToggle = async (id: string) => {
+    const todo = todos.find((t) => t.id === id);
+    if (!todo) return;
+    // Hard regel: kan ikke fullføre hvis avhengighet ikke er ferdig
+    if (!todo.completed && isBlocked(todo, todos)) {
+      const dep = getDependency(todo, todos);
+      toast.error(
+        dep
+          ? `Fullfør "${dep.title}" først`
+          : "Denne oppgaven er blokkert av en avhengighet",
+      );
+      return;
+    }
     await toggleTodo(id);
   };
 
@@ -254,6 +268,7 @@ export default function Home() {
         <TaskModal
           mode={modalMode}
           config={config}
+          allTodos={todos}
           onClose={() => setModalMode(null)}
           onSave={handleSave}
           onDelete={handleDelete}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Lock } from "lucide-react";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
@@ -16,6 +16,7 @@ import {
 } from "@/lib/date";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 import { TaskCardTooltip, formatHours } from "./TaskCardTooltip";
+import { isBlocked, getDependency } from "@/lib/deps";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -178,6 +179,7 @@ export function MonthView({
                   weekNum={weekNum}
                   anchorDate={anchorDate}
                   todosByDate={todosByDate}
+                  allTodos={todos}
                   config={config}
                   getDayMarker={getDayMarker}
                   onCellClick={onCellClick}
@@ -199,6 +201,7 @@ interface MonthRowProps {
   weekNum: number;
   anchorDate: Date;
   todosByDate: Map<string, Todo[]>;
+  allTodos: Todo[];
   config: AppConfig;
   getDayMarker: (date: Date) => { type: "holiday" | "commercial"; label: string } | null;
   onCellClick: (date: Date, slot: TimeSlot) => void;
@@ -212,6 +215,7 @@ function MonthRow({
   weekNum,
   anchorDate,
   todosByDate,
+  allTodos,
   config,
   getDayMarker,
   onCellClick,
@@ -295,11 +299,14 @@ function MonthRow({
               {dayTodos.slice(0, MAX_VISIBLE_TASKS).map((t) => {
                 const typeConfig = config.taskTypes[t.type];
                 if (!typeConfig) return null;
+                const blocked = !t.completed && isBlocked(t, allTodos);
+                const dep = blocked ? getDependency(t, allTodos) : null;
                 return (
                   <TaskCardTooltip
                     key={t.id}
                     description={t.description}
                     estimateHours={t.estimateHours}
+                    blockedBy={dep?.title}
                   >
                     <div
                       data-testid={`month-todo-${t.id}`}
@@ -314,10 +321,29 @@ function MonthRow({
                           e.stopPropagation();
                           onTodoToggle(t.id);
                         }}
-                        className="flex-shrink-0 w-3 h-3 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
-                        aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
+                        className={`flex-shrink-0 w-3 h-3 rounded-full border flex items-center justify-center transition ${
+                          blocked
+                            ? "border-white/40 bg-black/30 cursor-not-allowed"
+                            : "border-white/60 hover:border-white bg-black/10 hover:bg-black/20"
+                        }`}
+                        aria-label={
+                          blocked
+                            ? `Blokkert — venter på ${dep?.title ?? "en annen oppgave"}`
+                            : t.completed
+                              ? "Marker ikke ferdig"
+                              : "Marker ferdig"
+                        }
+                        title={
+                          blocked
+                            ? `Blokkert — venter på "${dep?.title ?? "en annen oppgave"}"`
+                            : undefined
+                        }
                       >
-                        {t.completed && <Check className="h-1.5 w-1.5 text-white" strokeWidth={4} />}
+                        {blocked ? (
+                          <Lock className="h-1.5 w-1.5 text-amber-200" strokeWidth={3} />
+                        ) : t.completed ? (
+                          <Check className="h-1.5 w-1.5 text-white" strokeWidth={4} />
+                        ) : null}
                       </button>
                       <button
                         data-testid={`month-todo-click-${t.id}`}

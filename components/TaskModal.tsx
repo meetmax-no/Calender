@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Trash2, CheckCircle2, Circle, Loader2, Copy, Repeat } from "lucide-react";
+import { X, Trash2, CheckCircle2, Circle, Loader2, Copy, Repeat, Lock } from "lucide-react";
 import type { AppConfig, TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import { TIME_SLOTS } from "@/lib/types";
 import { getActiveTaskTypes } from "@/hooks/useAppConfig";
 import { addDays, addMonths } from "date-fns";
+import { DependencyPicker } from "./DependencyPicker";
+import { getDependency, isBlocked, getDependencyCandidates } from "@/lib/deps";
 
 export type ModalMode =
   | { kind: "create"; initialDate?: string; initialSlot?: TimeSlot; initialType?: string }
@@ -17,6 +19,8 @@ type RecurrenceFrequency = "daily" | "weekly" | "biweekly" | "triweekly" | "mont
 interface TaskModalProps {
   mode: ModalMode;
   config: AppConfig;
+  /** Hele todo-listen — brukes for dependency-dropdown */
+  allTodos: Todo[];
   onClose: () => void;
   onSave: (todo: Todo) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
@@ -60,6 +64,7 @@ function expandDates(
 export function TaskModal({
   mode,
   config,
+  allTodos,
   onClose,
   onSave,
   onDelete,
@@ -78,6 +83,7 @@ export function TaskModal({
           slot: mode.todo.slot,
           description: mode.todo.description ?? "",
           estimate: mode.todo.estimateHours?.toString() ?? "",
+          waitingFor: mode.todo.waitingFor,
           completed: mode.todo.completed,
         }
       : {
@@ -91,6 +97,7 @@ export function TaskModal({
             ("10-12" as TimeSlot),
           description: "",
           estimate: "",
+          waitingFor: undefined as string | undefined,
           completed: false,
         };
 
@@ -100,7 +107,17 @@ export function TaskModal({
   const [slot, setSlot] = useState<TimeSlot>(initialValues.slot as TimeSlot);
   const [description, setDescription] = useState(initialValues.description);
   const [estimate, setEstimate] = useState(initialValues.estimate);
+  const [waitingFor, setWaitingFor] = useState<string | undefined>(initialValues.waitingFor);
   const [completed, setCompleted] = useState(initialValues.completed);
+  const [completeBlockedHint, setCompleteBlockedHint] = useState<string | null>(null);
+
+  // Den oppgaven vi venter på (hvis satt og finnes)
+  const editingTodo = mode.kind === "edit" ? mode.todo : null;
+  const candidateTodos = getDependencyCandidates(editingTodo, allTodos);
+  // Sjekk om vi prøver å fullføre noe som er blokkert
+  const blockingDep = waitingFor
+    ? allTodos.find((t) => t.id === waitingFor && !t.completed)
+    : null;
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -122,6 +139,15 @@ export function TaskModal({
 
   const handleSave = async () => {
     if (!title.trim()) return;
+
+    // Hard regel: kan ikke markere ferdig hvis avhengighet ikke er ferdig
+    if (completed && blockingDep) {
+      setCompleteBlockedHint(
+        `Kan ikke fullføres — venter på "${blockingDep.title}"`,
+      );
+      return;
+    }
+
     setSaving(true);
     const now = new Date().toISOString();
 
@@ -137,6 +163,7 @@ export function TaskModal({
         slot,
         description: description.trim() || undefined,
         estimateHours: parsedEstimate,
+        waitingFor: waitingFor || undefined,
         completed: false,
         createdAt: now,
         updatedAt: now,
@@ -162,6 +189,7 @@ export function TaskModal({
             slot,
             description: description.trim() || undefined,
             estimateHours: parsedEstimate,
+            waitingFor: waitingFor || undefined,
             completed,
             updatedAt: now,
           }
@@ -173,6 +201,7 @@ export function TaskModal({
             slot,
             description: description.trim() || undefined,
             estimateHours: parsedEstimate,
+            waitingFor: waitingFor || undefined,
             completed,
             createdAt: now,
             updatedAt: now,
@@ -389,21 +418,84 @@ export function TaskModal({
             </div>
           </div>
 
+          {/* Venter på (avhengighet) */}
+          <div>
+            <label className="block text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wider">
+              Venter på <span className="text-white/40 normal-case">(valgfri)</span>
+            </label>
+            <DependencyPicker
+              value={waitingFor}
+              candidates={candidateTodos}
+              allTodos={allTodos}
+              config={config}
+              onChange={(id) => setWaitingFor(id)}
+            />
+            {waitingFor && (
+              <p className="mt-1.5 text-[11px] text-amber-200/80 flex items-center gap-1.5">
+                <Lock className="h-3 w-3" />
+                Kan ikke fullføres før denne oppgaven er ferdig.
+              </p>
+            )}
+          </div>
+
           {/* Ferdig-toggle */}
           <button
             data-testid="modal-completed-toggle"
-            onClick={() => setCompleted(!completed)}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition text-left"
+            type="button"
+            disabled={!!blockingDep && !completed}
+            onClick={() => {
+              if (blockingDep && !completed) {
+                setCompleteBlockedHint(
+                  `Kan ikke fullføres — venter på "${blockingDep.title}"`,
+                );
+                return;
+              }
+              setCompleteBlockedHint(null);
+              setCompleted(!completed);
+            }}
+            title={
+              blockingDep && !completed
+                ? `Kan ikke fullføres — venter på "${blockingDep.title}"`
+                : undefined
+            }
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border transition text-left ${
+              blockingDep && !completed
+                ? "bg-white/5 border-white/10 opacity-50 cursor-not-allowed"
+                : "bg-white/5 hover:bg-white/10 border-white/10"
+            }`}
           >
-            {completed ? (
+            {blockingDep && !completed ? (
+              <Lock className="h-5 w-5 text-amber-300 flex-shrink-0" />
+            ) : completed ? (
               <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
             ) : (
               <Circle className="h-5 w-5 text-white/50 flex-shrink-0" />
             )}
-            <span className={`text-sm ${completed ? "text-emerald-300" : "text-white"}`}>
-              {completed ? "Markert som ferdig" : "Marker som ferdig"}
+            <span
+              className={`text-sm ${
+                blockingDep && !completed
+                  ? "text-amber-200/80"
+                  : completed
+                    ? "text-emerald-300"
+                    : "text-white"
+              }`}
+            >
+              {blockingDep && !completed
+                ? "Blokkert"
+                : completed
+                  ? "Markert som ferdig"
+                  : "Marker som ferdig"}
             </span>
           </button>
+
+          {completeBlockedHint && (
+            <p
+              data-testid="modal-completed-blocked-hint"
+              className="text-[11px] text-amber-200/90 -mt-1"
+            >
+              {completeBlockedHint}
+            </p>
+          )}
 
           {/* Gjentakelse — kun ved opprettelse */}
           {!isEdit && (

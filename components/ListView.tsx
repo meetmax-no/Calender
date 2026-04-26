@@ -11,6 +11,7 @@ import {
   ListTodo,
   Plus,
   Printer,
+  Lock,
 } from "lucide-react";
 import type { Todo, TimeSlot } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
@@ -19,6 +20,7 @@ import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 import { formatHours } from "./TaskCardTooltip";
+import { getDependency } from "@/lib/deps";
 
 type ViewMode = "week" | "month" | "list";
 type SortKey = "date" | "type" | "title" | "completed";
@@ -232,6 +234,9 @@ export function ListView({
                   >
                     Tittel
                   </HeaderCell>
+                  <th className="px-2 py-2.5 w-44 text-left text-[10px] font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">
+                    Venter på
+                  </th>
                   <th className="px-2 py-2.5 w-16 text-right text-[10px] font-semibold text-white/60 uppercase tracking-wider">
                     Estimat
                   </th>
@@ -243,6 +248,8 @@ export function ListView({
                   const typeConfig = config.taskTypes[t.type];
                   const week = getISOWeek(new Date(t.date));
                   const dateObj = new Date(t.date);
+                  const dep = getDependency(t, todos);
+                  const blocked = !t.completed && Boolean(dep) && !dep!.completed;
                   return (
                     <tr
                       key={t.id}
@@ -256,19 +263,32 @@ export function ListView({
                         <button
                           data-testid={`list-toggle-${t.id}`}
                           onClick={() => onTodoToggle(t.id)}
+                          disabled={blocked}
+                          aria-label={
+                            blocked
+                              ? `Blokkert — venter på ${dep?.title}`
+                              : t.completed
+                                ? "Marker ikke ferdig"
+                                : "Marker ferdig"
+                          }
+                          title={
+                            blocked
+                              ? `Blokkert — venter på "${dep?.title}"`
+                              : undefined
+                          }
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
-                            t.completed
+                            blocked
+                              ? "border-amber-300/50 bg-amber-500/10 cursor-not-allowed"
+                              : t.completed
                               ? "bg-emerald-500 border-emerald-500"
                               : "border-white/30 hover:border-white/60"
                           }`}
-                          aria-label={
-                            t.completed ? "Marker som åpen" : "Marker som ferdig"
-                          }
-                          title={t.completed ? "Gjør åpen igjen" : "Marker som ferdig"}
                         >
-                          {t.completed && (
+                          {blocked ? (
+                            <Lock className="h-3 w-3 text-amber-300" strokeWidth={3} />
+                          ) : t.completed ? (
                             <Check className="h-3 w-3 text-white" strokeWidth={4} />
-                          )}
+                          ) : null}
                         </button>
                       </td>
 
@@ -322,6 +342,31 @@ export function ListView({
                           <div className="text-[11px] text-white/50 mt-0.5 truncate max-w-md">
                             {t.description}
                           </div>
+                        )}
+                      </td>
+
+                      {/* Venter på */}
+                      <td className="px-2 py-3 text-[11px]">
+                        {dep ? (
+                          <button
+                            data-testid={`list-dep-${t.id}`}
+                            onClick={() => onTodoEdit(dep)}
+                            className={`flex items-center gap-1.5 max-w-full text-left transition hover:opacity-100 ${
+                              dep.completed ? "text-emerald-300/70" : "text-amber-200"
+                            }`}
+                            title={`Venter på "${dep.title}" — klikk for å åpne`}
+                          >
+                            {dep.completed ? (
+                              <Check className="h-3 w-3 flex-shrink-0" strokeWidth={3} />
+                            ) : (
+                              <Lock className="h-3 w-3 flex-shrink-0" />
+                            )}
+                            <span className="truncate underline decoration-dotted underline-offset-2">
+                              {dep.title}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className="text-white/20">—</span>
                         )}
                       </td>
 

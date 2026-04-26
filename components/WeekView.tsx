@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Lock } from "lucide-react";
 import type { TimeSlot } from "@/lib/config";
 import { TIME_SLOTS } from "@/lib/types";
 import {
@@ -18,6 +18,7 @@ import type { Todo } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 import { TaskCardTooltip, formatHours } from "./TaskCardTooltip";
+import { isBlocked, getDependency } from "@/lib/deps";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -201,6 +202,7 @@ export function WeekView({
               slot={slot}
               weekDays={weekDays}
               getTodos={getTodosForCell}
+              allTodos={todos}
               getDayMarker={getDayMarker}
               config={config}
               onCellClick={onCellClick}
@@ -218,6 +220,7 @@ interface SlotRowProps {
   slot: TimeSlot;
   weekDays: Date[];
   getTodos: (date: Date, slot: TimeSlot) => Todo[];
+  allTodos: Todo[];
   getDayMarker: (date: Date) => { type: "holiday" | "commercial"; label: string } | null;
   config: AppConfig;
   onCellClick: (date: Date, slot: TimeSlot) => void;
@@ -229,6 +232,7 @@ function SlotRow({
   slot,
   weekDays,
   getTodos,
+  allTodos,
   getDayMarker,
   config,
   onCellClick,
@@ -267,11 +271,14 @@ function SlotRow({
               {cellTodos.map((t) => {
                 const typeConfig = config.taskTypes[t.type];
                 if (!typeConfig) return null;
+                const blocked = !t.completed && isBlocked(t, allTodos);
+                const dep = blocked ? getDependency(t, allTodos) : null;
                 return (
                   <TaskCardTooltip
                     key={t.id}
                     description={t.description}
                     estimateHours={t.estimateHours}
+                    blockedBy={dep?.title}
                   >
                     <div
                       data-testid={`todo-card-${t.id}`}
@@ -286,11 +293,31 @@ function SlotRow({
                           e.stopPropagation();
                           onTodoToggle(t.id);
                         }}
-                        className="flex-shrink-0 w-4 h-4 rounded-full border border-white/60 hover:border-white flex items-center justify-center bg-black/10 hover:bg-black/20 transition"
-                        aria-label={t.completed ? "Marker ikke ferdig" : "Marker ferdig"}
-                        title={t.completed ? "Marker som ikke-ferdig" : "Marker som ferdig"}
+                        className={`flex-shrink-0 w-4 h-4 rounded-full border flex items-center justify-center transition ${
+                          blocked
+                            ? "border-white/40 bg-black/30 cursor-not-allowed"
+                            : "border-white/60 hover:border-white bg-black/10 hover:bg-black/20"
+                        }`}
+                        aria-label={
+                          blocked
+                            ? `Blokkert — venter på ${dep?.title ?? "en annen oppgave"}`
+                            : t.completed
+                              ? "Marker ikke ferdig"
+                              : "Marker ferdig"
+                        }
+                        title={
+                          blocked
+                            ? `Blokkert — venter på "${dep?.title ?? "en annen oppgave"}"`
+                            : t.completed
+                              ? "Marker som ikke-ferdig"
+                              : "Marker som ferdig"
+                        }
                       >
-                        {t.completed && <Check className="h-2.5 w-2.5 text-white" strokeWidth={4} />}
+                        {blocked ? (
+                          <Lock className="h-2.5 w-2.5 text-amber-200" strokeWidth={3} />
+                        ) : t.completed ? (
+                          <Check className="h-2.5 w-2.5 text-white" strokeWidth={4} />
+                        ) : null}
                       </button>
                       <button
                         data-testid={`todo-click-${t.id}`}

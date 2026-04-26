@@ -7,26 +7,32 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Clock } from "lucide-react";
+import { Clock, Lock } from "lucide-react";
 
 interface TaskCardTooltipProps {
   description?: string;
   estimateHours?: number;
+  /** Hvis satt: viser "Venter på X" som blokkering-info */
+  blockedBy?: string;
   children: ReactNode;
 }
 
 /**
  * Wrapper rundt et oppgave-kort som viser en hover-tooltip
- * med beskrivelse og estimat. Vises KUN hvis beskrivelse finnes.
- * Estimatet vises som ekstra linje hvis satt.
+ * med beskrivelse, estimat og evt. blokkerings-info.
+ * Vises hvis MINST ÉN av disse finnes: beskrivelse, blockedBy.
  */
 export function TaskCardTooltip({
   description,
   estimateHours,
+  blockedBy,
   children,
 }: TaskCardTooltipProps) {
-  // Vis ingen tooltip hvis det ikke er noen beskrivelse å vise
-  if (!description || description.trim() === "") {
+  const hasDescription = description && description.trim() !== "";
+  const hasBlocked = Boolean(blockedBy);
+
+  // Vis ingen tooltip hvis det ikke er noe å fortelle
+  if (!hasDescription && !hasBlocked) {
     return <>{children}</>;
   }
 
@@ -41,11 +47,32 @@ export function TaskCardTooltip({
           className="max-w-[280px] bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-2xl px-3 py-2.5"
           data-testid="task-tooltip"
         >
-          <p className="text-[12px] leading-snug whitespace-pre-wrap break-words text-white/95">
-            {description}
-          </p>
+          {hasDescription && (
+            <p className="text-[12px] leading-snug whitespace-pre-wrap break-words text-white/95">
+              {description}
+            </p>
+          )}
+          {hasBlocked && (
+            <div
+              data-testid="task-tooltip-blocked"
+              className={`flex items-center gap-1.5 text-[11px] text-amber-200 ${
+                hasDescription ? "mt-1.5 pt-1.5 border-t border-white/15" : ""
+              }`}
+            >
+              <Lock className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">
+                Venter på: <strong className="font-semibold">{blockedBy}</strong>
+              </span>
+            </div>
+          )}
           {estimateHours !== undefined && (
-            <div className="mt-1.5 pt-1.5 border-t border-white/15 flex items-center gap-1.5 text-[10px] text-white/70 font-semibold uppercase tracking-wider">
+            <div
+              className={`flex items-center gap-1.5 text-[10px] text-white/70 font-semibold uppercase tracking-wider ${
+                hasDescription || hasBlocked
+                  ? "mt-1.5 pt-1.5 border-t border-white/15"
+                  : ""
+              }`}
+            >
               <Clock className="h-3 w-3" />
               <span className="tabular-nums">{formatHours(estimateHours)}</span>
             </div>

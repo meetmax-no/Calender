@@ -12,6 +12,8 @@ export interface Todo {
   title: string;
   description?: string;
   estimateHours?: number; // valgfritt timeestimat (f.eks. 0.5, 1, 2, 4)
+  /** ID til en annen oppgave som må fullføres før denne kan fullføres */
+  waitingFor?: string;
   date: string; // YYYY-MM-DD
   slot: TimeSlot;
   completed: boolean;

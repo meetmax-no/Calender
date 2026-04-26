@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { Todo } from "@/lib/types";
 import { getWeekDays, toDateKey } from "@/lib/date";
 import { formatHours } from "./TaskCardTooltip";
+import { isBlocked } from "@/lib/deps";
 
 interface WeekStatsProps {
   anchorDate: Date;
@@ -12,7 +13,7 @@ interface WeekStatsProps {
 }
 
 export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
-  const { total, done, overdue, estimateOpen, estimateDone } = useMemo(() => {
+  const { total, done, overdue, blocked, estimateOpen, estimateDone } = useMemo(() => {
     const weekDays = getWeekDays(anchorDate);
     const weekKeys = new Set(weekDays.map((d) => toDateKey(d)));
     const todayKey = toDateKey(new Date());
@@ -28,6 +29,14 @@ export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
         t.date < todayKey,
     ).length;
 
+    // Blokkerte i hele synlige settet (ikke bare uka) — for å gi totaloversikt
+    const blocked = todos.filter(
+      (t) =>
+        visibleTypes.has(t.type) &&
+        !t.completed &&
+        isBlocked(t, todos),
+    ).length;
+
     const estimateOpen = inWeek
       .filter((t) => !t.completed && t.estimateHours !== undefined)
       .reduce((sum, t) => sum + (t.estimateHours ?? 0), 0);
@@ -39,6 +48,7 @@ export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
       total: inWeek.length,
       done,
       overdue,
+      blocked,
       estimateOpen: Math.round(estimateOpen * 10) / 10,
       estimateDone: Math.round(estimateDone * 10) / 10,
     };
@@ -109,6 +119,17 @@ export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
               {overdue} {overdue === 1 ? "forsinket" : "forsinkede"}
+            </p>
+          )}
+
+          {/* Blokkerte oppgaver */}
+          {blocked > 0 && (
+            <p
+              data-testid="week-stats-blocked"
+              className="mt-1.5 text-[11px] text-amber-200 flex items-center gap-1.5"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              {blocked} {blocked === 1 ? "blokkert" : "blokkerte"}
             </p>
           )}
 
