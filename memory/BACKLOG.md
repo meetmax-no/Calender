@@ -44,6 +44,35 @@ sharedWith?: string[]; // Reservert for fremtidig "delt med X"
 
 ---
 
+### Automatisk backup via Vercel Cron + GitHub
+- **Hvorfor:** Brukeren forventer i 2026 at data backes opp automatisk uten manuell innsats. Manuell backup-knapp er fortsatt nyttig for ad-hoc, men daglig automatikk gir trygghet.
+- **Arkitektur (anbefalt):**
+  - Vercel Cron-jobb kjører `/api/cron/backup` hver natt kl 03:00 UTC
+  - Funksjonen henter todos fra Upstash, pakker som JSON
+  - Skriver til GitHub via REST API til en **separat `backups`-branch** i samme repo (kritisk: ikke main, ellers trigges ny Vercel-deploy hver natt)
+  - Filsti: `snapshots/YYYY-MM-DD.json`
+  - Sletter filer eldre enn 7 dager i samme jobb (FIFO-rotasjon)
+- **Setup-krav:**
+  - GitHub Personal Access Token med `repo`-scope, lagret som Vercel env var `GITHUB_BACKUP_TOKEN`
+  - `vercel.json` med cron-config: `{"crons":[{"path":"/api/cron/backup","schedule":"0 3 * * *"}]}`
+  - Opprett `backups`-branch i repoet manuelt én gang
+  - Ny route `/api/cron/backup` (sjekk `Authorization: Bearer $CRON_SECRET` for sikkerhet)
+- **UI-utvidelse i Settings:**
+  - Ny seksjon "Tidligere snapshots" som lister filer fra `backups`-branchen via GitHub API
+  - Restore-knapp per dato (gjenbruker eksisterende `onRestore`)
+- **Bonus av denne arkitekturen:**
+  - GitHub gir versjonshistorikk gratis — du kan diffe dag-for-dag og se hvordan dataene endret seg
+  - Backup overlever selv om Upstash skulle krasje
+  - Null kostnad utover Vercel Hobby-planen
+- **Estimert jobb:** ~2 timer
+- **Rekkefølge:** Bygg ETTER Google Auth, så backup-formatet kan inkludere `ownerId` og `visibility` fra start (slipper migrasjon)
+- **Vurderte men avviste alternativer:**
+  - ❌ E-post via Resend — bruker syns det "ikke er seriøst nok"
+  - ❌ Commit til main-branch — trigger ny Vercel-deploy hver natt
+  - ❌ S3/Dropbox/Google Drive — ekstra OAuth-kompleksitet uten klar fordel
+
+---
+
 ## 🟢 P2 — Mulige forbedringer (avhenger av faktisk bruk)
 
 ### Tastatur-snarveier på desktop
