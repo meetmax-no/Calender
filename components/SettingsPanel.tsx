@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle, ChevronDown } from "lucide-react";
+import { useRef, useState } from "react";
+import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle, ChevronDown, DatabaseBackup, Upload } from "lucide-react";
 import type { AppConfig } from "@/lib/config";
 import type { BackgroundMode } from "@/hooks/useUserPrefs";
 import type { Todo } from "@/lib/types";
 import type { Branding } from "@/lib/branding";
 import { getActiveTaskTypes } from "@/hooks/useAppConfig";
 import { generateIcs, downloadIcs } from "@/lib/ics";
+import { downloadBackup, readBackupFile, getLastBackupAt, formatRelativeTime } from "@/lib/backup";
+import { toast } from "sonner";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -26,6 +28,8 @@ interface SettingsPanelProps {
   configError: string | null;
   /** Branding-verdier (fra env) */
   branding: Branding;
+  /** Brukes for å gjenopprette todos fra en backup-fil */
+  onRestore: (todos: Todo[]) => Promise<void>;
 }
 
 export function SettingsPanel({
@@ -41,6 +45,7 @@ export function SettingsPanel({
   activeClient,
   configError,
   branding,
+  onRestore,
 }: SettingsPanelProps) {
   const activeTypes = getActiveTaskTypes(config);
   const [exportTypes, setExportTypes] = useState<Set<string>>(
@@ -51,6 +56,13 @@ export function SettingsPanel({
   const [configOpen, setConfigOpen] = useState<boolean>(
     usingFallback || Boolean(configError),
   );
+
+  // Backup state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [lastBackupAt, setLastBackupAt] = useState<Date | null>(() =>
+    typeof window !== "undefined" ? getLastBackupAt() : null,
+  );
+  const [isRestoring, setIsRestoring] = useState(false);
 
   if (!open) return null;
 
@@ -72,6 +84,59 @@ export function SettingsPanel({
     const ics = generateIcs(filtered, config, `${branding.tagline} · ${branding.name}`);
     const date = new Date().toISOString().slice(0, 10);
     downloadIcs(ics, `kodo-todo-${date}.ics`);
+  };
+
+  const handleBackup = () => {
+    try {
+      const { count } = downloadBackup({
+        todos,
+        client: activeClient,
+        appVersion: branding.version,
+      });
+      setLastBackupAt(new Date());
+      toast.success(`Backup lagret · ${count} ${count === 1 ? "oppgave" : "oppgaver"}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Kunne ikke lagre backup");
+    }
+  };
+
+  const handleRestoreClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset input slik at samme fil kan velges igjen senere
+    e.target.value = "";
+    if (!file) return;
+
+    let backup;
+    try {
+      backup = await readBackupFile(file);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ugyldig backup-fil");
+      return;
+    }
+
+    const exportedDate = new Date(backup.exportedAt);
+    const dateStr = isNaN(exportedDate.getTime())
+      ? "ukjent dato"
+      : exportedDate.toLocaleString("nb-NO", { dateStyle: "medium", timeStyle: "short" });
+
+    const confirmed = window.confirm(
+      `Dette vil ERSTATTE alle dine ${todos.length} nåværende oppgaver med ${backup.todoCount} oppgaver fra backup datert ${dateStr}.\n\nDenne handlingen kan ikke angres.\n\nFortsette?`,
+    );
+    if (!confirmed) return;
+
+    setIsRestoring(true);
+    try {
+      await onRestore(backup.todos);
+      toast.success(`Gjenopprettet ${backup.todoCount} oppgaver`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Kunne ikke gjenopprette");
+    } finally {
+      setIsRestoring(false);
+    }
   };
 
   const taskTypeCount = Object.keys(config.taskTypes ?? {}).length;
@@ -335,6 +400,73 @@ export function SettingsPanel({
             <Download className="h-4 w-4" />
             Last ned .ics-fil
           </button>
+        </section>
+
+        {/* ============== Datasikkerhet (Backup/Restore) ============== */}
+        <section className="mt-6 pt-5 border-t border-white/10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-white/90 flex items-center gap-2">
+              <DatabaseBackup className="h-4 w-4 text-white/70" />
+              Datasikkerhet
+            </h3>
+            <span data-testid="backup-todo-count" className="text-[11px] text-white/50 tabular-nums">
+              {todos.length} {todos.length === 1 ? "oppgave" : "oppgaver"}
+            </span>
+          </div>
+          <p className="text-[11px] text-white/50 mb-3 leading-relaxed">
+            Last ned en JSON-fil med alle oppgavene dine. Filen lagres lokalt på din maskin —
+            aldri på en server. Bruk den til å gjenopprette hvis noe går galt.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              data-testid="backup-download-btn"
+              onClick={handleBackup}
+              disabled={todos.length === 0}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:bg-white/5 disabled:text-white/40 text-white text-sm font-medium shadow transition"
+            >
+              <Download className="h-4 w-4" />
+              Last ned backup
+            </button>
+
+            <button
+              data-testid="backup-restore-btn"
+              onClick={handleRestoreClick}
+              disabled={isRestoring}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-medium transition disabled:opacity-50"
+              title="Gjenopprett alle oppgaver fra en backup-fil"
+            >
+              <Upload className="h-4 w-4" />
+              {isRestoring ? "Gjenoppretter..." : "Gjenopprett fra backup"}
+            </button>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={handleRestoreFile}
+            className="hidden"
+            data-testid="backup-restore-input"
+          />
+
+          <div
+            data-testid="backup-last-info"
+            className="mt-3 flex items-center gap-2 text-[11px] text-white/50"
+          >
+            <Check className="h-3 w-3 text-emerald-400/70" />
+            <span>
+              Sist lastet ned: <span className="text-white/80">{formatRelativeTime(lastBackupAt)}</span>
+            </span>
+          </div>
+
+          <div className="mt-2 flex items-start gap-2 text-[11px] text-amber-200/80 bg-amber-500/10 border border-amber-400/20 rounded-md px-2.5 py-2">
+            <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+            <span>
+              Gjenoppretting <strong>erstatter alle</strong> nåværende oppgaver. Du blir bedt om å
+              bekrefte før det skjer.
+            </span>
+          </div>
         </section>
 
         <div className="mt-6 pt-4 border-t border-white/10 text-[11px] text-white/40">

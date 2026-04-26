@@ -17,6 +17,8 @@ import {
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 import { TaskCardTooltip, formatHours } from "./TaskCardTooltip";
 import { isBlocked, getDependency } from "@/lib/deps";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -34,6 +36,7 @@ interface MonthViewProps {
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
+  onTodoMove: (id: string, date: string, slot: TimeSlot | undefined) => void;
 }
 
 const WEEKDAY_HEADERS = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
@@ -53,9 +56,12 @@ export function MonthView({
   onCellClick,
   onTodoClick,
   onTodoToggle,
+  onTodoMove,
 }: MonthViewProps) {
   const days = getMonthViewGrid(anchorDate);
   const monthLabel = formatMonthTitle(anchorDate);
+  const isMobile = useIsMobile();
+  const dnd = useDragAndDrop({ enabled: !isMobile, onMove: onTodoMove });
 
   const visibleTodos = todos.filter((t) => {
     if (!visibleTypes.has(t.type)) return false;
@@ -185,6 +191,7 @@ export function MonthView({
                   onCellClick={onCellClick}
                   onTodoClick={onTodoClick}
                   onTodoToggle={onTodoToggle}
+                  dnd={dnd}
                 />
               );
             })}
@@ -207,6 +214,7 @@ interface MonthRowProps {
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
+  dnd: ReturnType<typeof useDragAndDrop>;
 }
 
 function MonthRow({
@@ -221,6 +229,7 @@ function MonthRow({
   onCellClick,
   onTodoClick,
   onTodoToggle,
+  dnd,
 }: MonthRowProps) {
   return (
     <>
@@ -242,16 +251,22 @@ function MonthRow({
         const today = isToday(date);
         const dayTodos = todosByDate.get(key) ?? [];
         const marker = getDayMarker(date);
+        const isDropTarget = dnd.state.hoverKey === key && dnd.state.activeId !== null;
 
         return (
           <div
             key={key}
             data-testid={`month-day-${key}`}
+            onDragOver={dnd.overCell(key)}
+            onDragLeave={dnd.leaveCell(key)}
+            onDrop={dnd.dropOnCell(key, undefined)}
             className={`relative flex flex-col p-1.5 transition group border-l border-white/10 ${
               rowIdx > 0 ? "border-t border-white/10" : ""
             } ${!inCurrentMonth ? "bg-black/10" : ""} ${
               marker?.type === "holiday" ? "bg-rose-400/5" : ""
-            } ${today ? "bg-blue-400/5" : ""}`}
+            } ${today ? "bg-blue-400/5" : ""} ${
+              isDropTarget ? "ring-2 ring-blue-400/70 ring-inset bg-blue-400/15" : ""
+            }`}
           >
             <button
               data-testid={`month-day-bg-${key}`}
@@ -311,9 +326,14 @@ function MonthRow({
                   >
                     <div
                       data-testid={`month-todo-${t.id}`}
-                      className={`pointer-events-auto flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm group/todo transition ${
-                        t.completed ? "opacity-50" : ""
-                      } ${!inCurrentMonth ? "opacity-60" : ""}`}
+                      draggable={!t.completed}
+                      onDragStart={dnd.startDrag(t.id)}
+                      onDragEnd={dnd.endDrag}
+                      className={`pointer-events-auto flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm group/todo transition cursor-grab active:cursor-grabbing ${
+                        t.completed ? "opacity-50 cursor-default" : ""
+                      } ${!inCurrentMonth ? "opacity-60" : ""} ${
+                        dnd.state.activeId === t.id ? "opacity-30 scale-95" : ""
+                      }`}
                       style={{ backgroundColor: typeConfig.color, color: "white" }}
                     >
                       <button

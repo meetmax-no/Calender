@@ -19,6 +19,8 @@ import type { AppConfig } from "@/lib/config";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 import { TaskCardTooltip, formatHours } from "./TaskCardTooltip";
 import { isBlocked, getDependency } from "@/lib/deps";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -36,6 +38,7 @@ interface WeekViewProps {
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
+  onTodoMove: (id: string, date: string, slot: TimeSlot | undefined) => void;
 }
 
 export function WeekView({
@@ -52,10 +55,13 @@ export function WeekView({
   onCellClick,
   onTodoClick,
   onTodoToggle,
+  onTodoMove,
 }: WeekViewProps) {
   const weekDays = getWeekDays(anchorDate);
   const weekNum = getISOWeek(weekDays[0]);
   const weekLabel = formatWeekRange(weekDays);
+  const isMobile = useIsMobile();
+  const dnd = useDragAndDrop({ enabled: !isMobile, onMove: onTodoMove });
 
   const goToToday = () => onAnchorChange(new Date());
   const goPrev = () => onAnchorChange(subWeeks(anchorDate, 1));
@@ -208,6 +214,7 @@ export function WeekView({
               onCellClick={onCellClick}
               onTodoClick={onTodoClick}
               onTodoToggle={onTodoToggle}
+              dnd={dnd}
             />
           ))}
         </div>
@@ -226,6 +233,7 @@ interface SlotRowProps {
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
+  dnd: ReturnType<typeof useDragAndDrop>;
 }
 
 function SlotRow({
@@ -238,6 +246,7 @@ function SlotRow({
   onCellClick,
   onTodoClick,
   onTodoToggle,
+  dnd,
 }: SlotRowProps) {
   return (
     <>
@@ -252,13 +261,19 @@ function SlotRow({
         const marker = getDayMarker(date);
         const today = isToday(date);
         const cellKey = `${toDateKey(date)}_${slot}`;
+        const isDropTarget = dnd.state.hoverKey === cellKey && dnd.state.activeId !== null;
         return (
           <div
             key={cellKey}
             data-testid={`cell-${cellKey}`}
+            onDragOver={dnd.overCell(cellKey)}
+            onDragLeave={dnd.leaveCell(cellKey)}
+            onDrop={dnd.dropOnCell(toDateKey(date), slot)}
             className={`border-t border-l border-white/10 p-1.5 transition group relative min-w-0 ${
               marker?.type === "holiday" ? "bg-rose-400/5" : ""
-            } ${today ? "bg-blue-400/5" : ""}`}
+            } ${today ? "bg-blue-400/5" : ""} ${
+              isDropTarget ? "ring-2 ring-blue-400/70 ring-inset bg-blue-400/15" : ""
+            }`}
           >
             {/* Klikkbar bakgrunn for å opprette ny */}
             <button
@@ -283,9 +298,12 @@ function SlotRow({
                   >
                     <div
                       data-testid={`todo-card-${t.id}`}
-                      className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition ${
-                        t.completed ? "opacity-50" : ""
-                      }`}
+                      draggable={!t.completed}
+                      onDragStart={dnd.startDrag(t.id)}
+                      onDragEnd={dnd.endDrag}
+                      className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition cursor-grab active:cursor-grabbing ${
+                        t.completed ? "opacity-50 cursor-default" : ""
+                      } ${dnd.state.activeId === t.id ? "opacity-30 scale-95" : ""}`}
                       style={{ backgroundColor: typeConfig.color, color: "white" }}
                     >
                       <button

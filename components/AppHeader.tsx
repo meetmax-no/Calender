@@ -1,17 +1,31 @@
 "use client";
 
-import { Search, Settings, Menu } from "lucide-react";
+import { Settings, Menu, Search as SearchIcon } from "lucide-react";
 import type { SyncStatus } from "@/hooks/useTodos";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { getBranding } from "@/lib/branding";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { SearchInputDesktop } from "./Search";
+import type { Todo } from "@/lib/types";
+import type { AppConfig } from "@/lib/config";
 
 interface AppHeaderProps {
   status: SyncStatus;
   onSettingsClick: () => void;
+  onSearchClickMobile: () => void;
+  todos: Todo[];
+  config: AppConfig;
+  onSelectTodo: (todo: Todo) => void;
 }
 
-export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
+export function AppHeader({
+  status,
+  onSettingsClick,
+  onSearchClickMobile,
+  todos,
+  config,
+  onSelectTodo,
+}: AppHeaderProps) {
   const branding = getBranding();
   const isMobile = useIsMobile();
   const renderStatus = () => {
@@ -72,15 +86,19 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-        <div className={`${isMobile ? "hidden" : "block"} relative`}>
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/70" />
-          <input
-            data-testid="header-search-input"
-            type="text"
-            placeholder="Søk i oppgaver..."
-            className="w-64 rounded-full bg-white/10 backdrop-blur-sm pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 transition"
-          />
-        </div>
+        {!isMobile && (
+          <SearchInputDesktop todos={todos} config={config} onSelect={onSelectTodo} />
+        )}
+        {isMobile && (
+          <button
+            data-testid="header-search-btn-mobile"
+            onClick={onSearchClickMobile}
+            className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-md transition"
+            aria-label="Søk"
+          >
+            <SearchIcon className="h-5 w-5" />
+          </button>
+        )}
         <button
           data-testid="header-settings-btn"
           onClick={onSettingsClick}

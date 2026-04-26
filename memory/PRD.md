@@ -105,21 +105,44 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 
 ### Backlog/nice-to-have
 - [ ] Day / Week-visning i tillegg til Month
-- [ ] Drag-drop for å flytte oppgaver mellom dager
+- [x] Drag-drop for å flytte oppgaver mellom dager (v4.5 — 2026-04-26)
 - [x] Gjentakende oppgaver
 - [ ] Auth / multi-user (Google Auth via NextAuth — P1)
 - [x] Mobile responsive layout (MVP ferdig 2026-04-26)
-- [ ] "Last ned alle data" backup-knapp i Settings (P1)
-- [ ] Faktisk tid vs estimat (P2)
-- [ ] Kopier oppgave til neste uke (P2)
-- [ ] Globalt søk på tvers av oppgaver (P2)
+- [x] Backup + Restore (v4.5 — 2026-04-26)
+- [x] Globalt søk (v4.5 — 2026-04-26)
+- [ ] Faktisk tid vs estimat (P2 — utsatt, brukeren ikke interessert)
+- [ ] Kopier oppgave til neste uke (P2 — utsatt, lavt verdi)
 
 ### Mobile MVP (ferdig 2026-04-26)
-- `useIsMobile()` hook (breakpoint 768px)
-- `app/page.tsx`: tvinger Liste-visning på mobil, FAB for ny oppgave, bruker `urlPortrait` fra config når mobil
-- `ListView.tsx`: skjuler tabell på mobil og rendrer ny `MobileCardList`-komponent (kort med tittel, type-chip, dato/slot, estimat, "venter på"-rad, dependency-aware ferdig-knapp)
+- `useIsMobile()` hook (telefon-deteksjon: `min(width, height) < 600px` → fungerer i landscape også)
+- `app/page.tsx`: tvinger Liste-visning på mobil, FAB for ny oppgave, bruker `urlPortrait` fra config når mobil, mobil-footer med versjon
+- `ListView.tsx`: skjuler tabell på mobil og rendrer ny `MobileCardList`-komponent
 - Topplinje på mobil: status-filter + sort-dropdown + horisontal type-chip-rad + kompakt stats-rad
 - Portrett-versjon av bakgrunnsbilder via `urlPortrait` i client-config
+- Bakgrunn dempes med `bg-black/65 backdrop-blur` på mobil for bedre lesbarhet
+
+### v4.5 features (2026-04-26)
+**Backup & Restore (`lib/backup.ts`):**
+- Last ned-knapp i Settings → genererer JSON-fil med alle todos + metadata, lastes ned via nettleseren (`kodo-backup-{client}-{dato}.json`)
+- Gjenopprett-knapp → filvelger → validerer format → bekreftelses-dialog → skriver til Upstash via `saveAll()`
+- "Sist lastet ned" lagres i localStorage
+- Validering: sjekker `version`, `todos`-array, krav til id/title/date
+
+**Drag-and-drop (`hooks/useDragAndDrop.ts`):**
+- HTML5 native API (ingen nye dependencies)
+- WeekView: dra mellom dager OG mellom slots (samme dag)
+- MonthView: dra mellom datoer (beholder original slot)
+- Disabled på mobil (touch + små targets)
+- Visuell feedback: kort blir 30 % opacity + scale, drop-target får blå ring
+
+**Globalt søk (`components/Search.tsx`):**
+- Desktop: dropdown under søkefelt i header (allerede plassert), max 8 treff
+- Mobil: fullscreen-overlay via søk-knapp i header (forstørrelsesglass)
+- Søker i tittel + beskrivelse, case-insensitive, æ/ø/å funker
+- Sortering: tittel-treff (prefix > infix) > beskrivelse-treff > nyeste først
+- Tastatur-navigasjon: ↑/↓/Enter/Esc
+- Highlight på matchende ord
 
 ## Next tasks (ved neste session)
 1. Motta jsonbin credentials fra bruker

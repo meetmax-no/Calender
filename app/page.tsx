@@ -24,6 +24,7 @@ import { isBlocked, getDependency, countBlocked } from "@/lib/deps";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Plus } from "lucide-react";
+import { SearchOverlayMobile } from "@/components/Search";
 
 const DEFAULT_BG =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
@@ -40,6 +41,7 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const hasInitializedFilter = useRef(false);
 
   useEffect(() => {
@@ -145,6 +147,21 @@ export default function Home() {
     setVisibleTypes((prev) => (prev.has(todo.type) ? prev : new Set(prev).add(todo.type)));
   };
 
+  // Drag-and-drop: flytt en oppgave til ny dato (og evt. nytt slot)
+  const handleTodoMove = async (
+    id: string,
+    date: string,
+    slot: TimeSlot | undefined,
+  ) => {
+    const target = todos.find((t) => t.id === id);
+    if (!target) return;
+    const sameDate = target.date === date;
+    const sameSlot = slot === undefined || target.slot === slot;
+    if (sameDate && sameSlot) return; // Ingen endring
+    const nextSlot = slot ?? target.slot;
+    await updateTodo(id, { date, slot: nextSlot });
+  };
+
   // Lagre mange todos atomisk (for gjentakende oppgaver)
   const handleSaveRecurring = async (newTodos: Todo[]) => {
     await saveAll([...todos, ...newTodos]);
@@ -181,7 +198,14 @@ export default function Home() {
         }`}
       />
 
-      <AppHeader status={status} onSettingsClick={() => setSettingsOpen(true)} />
+      <AppHeader
+        status={status}
+        onSettingsClick={() => setSettingsOpen(true)}
+        onSearchClickMobile={() => setSearchOpen(true)}
+        todos={todos}
+        config={config}
+        onSelectTodo={handleTodoClick}
+      />
 
       <main className="relative h-screen w-full pt-20 flex">
         <aside
@@ -233,6 +257,7 @@ export default function Home() {
               onCellClick={handleCellClick}
               onTodoClick={handleTodoClick}
               onTodoToggle={handleTodoToggle}
+              onTodoMove={handleTodoMove}
             />
           )}
           {viewMode === "month" && (
@@ -250,6 +275,7 @@ export default function Home() {
               onCellClick={handleCellClick}
               onTodoClick={handleTodoClick}
               onTodoToggle={handleTodoToggle}
+              onTodoMove={handleTodoMove}
             />
           )}
           {viewMode === "list" && (
@@ -329,6 +355,24 @@ export default function Home() {
         activeClient={activeClient}
         configError={configError}
         branding={branding}
+        onRestore={async (restoredTodos) => {
+          await saveAll(restoredTodos);
+          // Sørg for at typene som finnes i backup blir synlige etter restore
+          const types = new Set(restoredTodos.map((t) => t.type));
+          setVisibleTypes((prev) => {
+            const next = new Set(prev);
+            types.forEach((tp) => next.add(tp));
+            return next;
+          });
+        }}
+      />
+
+      <SearchOverlayMobile
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        todos={todos}
+        config={config}
+        onSelect={handleTodoClick}
       />
 
       <LoadingToast status={status} configStatus={configStatus} />
