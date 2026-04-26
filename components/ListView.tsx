@@ -21,6 +21,8 @@ import { nb } from "date-fns/locale";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 import { formatHours } from "./TaskCardTooltip";
 import { getDependency } from "@/lib/deps";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { getActiveTaskTypes } from "@/hooks/useAppConfig";
 
 type ViewMode = "week" | "month" | "list";
 type SortKey = "date" | "type" | "title" | "completed";
@@ -32,6 +34,8 @@ interface ListViewProps {
   config: AppConfig;
   todos: Todo[];
   visibleTypes: Set<string>;
+  /** Mobil bruker dette for å toggle typer via chip-raden */
+  onToggleType?: (typeKey: string) => void;
   statusFilter: StatusFilter;
   onStatusFilterChange: (next: StatusFilter) => void;
   statusCounts: { all: number; open: number; done: number };
@@ -47,6 +51,7 @@ export function ListView({
   config,
   todos,
   visibleTypes,
+  onToggleType,
   statusFilter,
   onStatusFilterChange,
   statusCounts,
@@ -115,18 +120,21 @@ export function ListView({
     );
   };
 
+  const isMobile = useIsMobile();
+  const activeTaskTypes = getActiveTaskTypes(config);
+
   return (
     <div data-testid="list-view" className="flex-1 flex flex-col min-h-0">
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0 gap-3">
-        <div className="flex items-center gap-3 flex-1">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/10 flex-shrink-0 gap-2 sm:gap-3 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
           <ListTodo className="h-5 w-5 text-white/70 flex-shrink-0" />
-          <h2 data-testid="list-title" className="text-lg font-semibold text-white">
-            Alle oppgaver
+          <h2 data-testid="list-title" className="text-base sm:text-lg font-semibold text-white truncate">
+            {isMobile ? "Oppgaver" : "Alle oppgaver"}
           </h2>
 
           {/* Status-filter */}
-          <div className="ml-3">
+          <div className="ml-1 sm:ml-3">
             <StatusFilterBar
               value={statusFilter}
               onChange={onStatusFilterChange}
@@ -137,10 +145,30 @@ export function ListView({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Sort-dropdown (mobil) */}
+          {isMobile && (
+            <select
+              data-testid="list-sort-mobile"
+              value={`${sortKey}-${sortDir}`}
+              onChange={(e) => {
+                const [key, dir] = e.target.value.split("-") as [SortKey, SortDir];
+                setSortKey(key);
+                setSortDir(dir);
+              }}
+              className="bg-white/5 border border-white/15 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-400/60"
+            >
+              <option value="date-asc" className="bg-slate-800">Dato ↑</option>
+              <option value="date-desc" className="bg-slate-800">Dato ↓</option>
+              <option value="type-asc" className="bg-slate-800">Type</option>
+              <option value="completed-asc" className="bg-slate-800">Status</option>
+            </select>
+          )}
+
+          {/* Desktop-knapper */}
           <button
             data-testid="list-create-new-btn"
             onClick={onCreateNew}
-            className="px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow transition flex items-center gap-1.5"
+            className="hidden sm:flex px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium shadow transition items-center gap-1.5"
           >
             <Plus className="h-4 w-4" />
             Ny oppgave
@@ -149,14 +177,14 @@ export function ListView({
           <button
             data-testid="list-print-btn"
             onClick={() => window.print()}
-            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition flex items-center gap-1.5 border border-white/15"
+            className="hidden sm:flex px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition items-center gap-1.5 border border-white/15"
             title="Skriv ut listen"
           >
             <Printer className="h-4 w-4" />
             Skriv ut
           </button>
 
-          <div className="flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5 print:hidden">
+          <div className="hidden md:flex items-center gap-1 bg-white/5 border border-white/15 rounded-lg p-0.5 print:hidden">
             {(["week", "month", "list"] as ViewMode[]).map((m) => (
               <button
                 key={m}
@@ -175,9 +203,56 @@ export function ListView({
         </div>
       </div>
 
-      {/* Tabell — glass-bakgrunn full bredde, tabell-innhold venstrejustert */}
-      <div className="flex-1 overflow-auto p-4 min-h-0">
-        <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+      {/* Mobil: chip-rad for typer + kompakt stat */}
+      {isMobile && (
+        <div className="px-3 pb-2 pt-1 border-b border-white/10 flex flex-col gap-2">
+          {/* Stat-rad */}
+          <div className="flex items-center justify-between text-[11px] text-white/60 font-medium">
+            <span data-testid="mobile-stats">
+              <span className="text-white">{statusCounts.open}</span> åpne
+              {" · "}
+              <span className="text-emerald-300">{statusCounts.done}</span> ferdig
+              {" · "}
+              <span className="text-white/40">{statusCounts.all}</span> totalt
+            </span>
+          </div>
+
+          {/* Type-chips */}
+          {onToggleType && activeTaskTypes.length > 0 && (
+            <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 pb-1 scrollbar-thin">
+              {activeTaskTypes.map((typeDef) => {
+                const isOn = visibleTypes.has(typeDef.key);
+                return (
+                  <button
+                    key={typeDef.key}
+                    data-testid={`mobile-type-chip-${typeDef.key}`}
+                    onClick={() => onToggleType(typeDef.key)}
+                    className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition border ${
+                      isOn
+                        ? "bg-white/15 border-white/25 text-white"
+                        : "bg-transparent border-white/10 text-white/40"
+                    }`}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: isOn
+                          ? typeDef.color
+                          : "rgba(255,255,255,0.2)",
+                      }}
+                    />
+                    {typeDef.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tabell / kort-liste */}
+      <div className="flex-1 overflow-auto p-3 sm:p-4 min-h-0 pb-24 md:pb-4">
+        <div className={isMobile ? "" : "bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl overflow-hidden"}>
           {sorted.length === 0 ? (
             <div
               data-testid="list-empty"
@@ -199,6 +274,14 @@ export function ListView({
                 </button>
               )}
             </div>
+          ) : isMobile ? (
+            <MobileCardList
+              todos={sorted}
+              allTodos={todos}
+              config={config}
+              onTodoEdit={onTodoEdit}
+              onTodoToggle={onTodoToggle}
+            />
           ) : (
             <table className="w-auto min-w-[720px] text-sm">
               <thead className="bg-white/5 border-b border-white/10">

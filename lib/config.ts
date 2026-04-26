@@ -15,6 +15,8 @@ export interface PaletteColor {
 
 export interface BackgroundImage {
   url: string;
+  /** Valgfri portrettversjon for mobil. Hvis ikke satt brukes `url` med smart crop. */
+  urlPortrait?: string;
   name: string;
 }
 

@@ -22,6 +22,8 @@ import { toDateKey } from "@/lib/date";
 import { getBranding } from "@/lib/branding";
 import { isBlocked, getDependency, countBlocked } from "@/lib/deps";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { Plus } from "lucide-react";
 
 const DEFAULT_BG =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
@@ -48,6 +50,15 @@ export default function Home() {
     }
   }, [configStatus, config]);
 
+  const isMobile = useIsMobile();
+
+  // Tvinger Liste-visning på mobil (Uke/Måned krever stor skjerm)
+  useEffect(() => {
+    if (isMobile && viewMode !== "list") {
+      setViewMode("list");
+    }
+  }, [isMobile, viewMode]);
+
   // Regn ut aktuelt bakgrunnsbilde basert på preferanser + config
   const backgroundUrl = useMemo(() => {
     const backgrounds = config.backgrounds ?? [];
@@ -57,11 +68,13 @@ export default function Home() {
       prefs.backgroundIndex,
       backgrounds.length,
     );
-    return backgrounds[idx]?.url ?? DEFAULT_BG;
-    // "daily" og "random" baserer seg på tid — vi vil ikke at de skal rerendre
-    // oftere enn nødvendig, så re-evaluering skjer ved navigering/refresh.
+    const bg = backgrounds[idx];
+    if (!bg) return DEFAULT_BG;
+    // På mobil: bruk portrett-versjon hvis den finnes
+    if (isMobile && bg.urlPortrait) return bg.urlPortrait;
+    return bg.url ?? DEFAULT_BG;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.backgrounds, prefs.backgroundIndex, prefs.backgroundMode]);
+  }, [config.backgrounds, prefs.backgroundIndex, prefs.backgroundMode, isMobile]);
 
   const handleToggleVisible = (typeKey: string) => {
     setVisibleTypes((prev) => {
@@ -168,7 +181,7 @@ export default function Home() {
       <main className="relative h-screen w-full pt-20 flex">
         <aside
           data-testid="app-sidebar"
-          className="w-72 h-full bg-white/10 backdrop-blur-xl border-r border-white/20 rounded-tr-3xl flex flex-col"
+          className="hidden md:flex w-72 h-full bg-white/10 backdrop-blur-xl border-r border-white/20 rounded-tr-3xl flex-col"
         >
           <div className="flex-1 p-5 flex flex-col gap-2 overflow-y-auto">
             <MiniCalendar
@@ -263,6 +276,18 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Mobil: Floating Action Button for ny oppgave */}
+      <button
+        data-testid="mobile-fab-create"
+        onClick={() =>
+          setModalMode({ kind: "create", initialDate: toDateKey(anchorDate) })
+        }
+        className="md:hidden fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white shadow-2xl flex items-center justify-center transition"
+        aria-label="Ny oppgave"
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.5} />
+      </button>
 
       {modalMode && (
         <TaskModal

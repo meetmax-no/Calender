@@ -49,30 +49,28 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
   return (
     <header
       data-testid="app-header"
-      className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-8 py-5"
+      className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5"
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <button
           data-testid="header-menu-btn"
-          className="text-white/80 hover:text-white transition"
+          className="hidden md:block text-white/80 hover:text-white transition"
           aria-label="Meny"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex items-baseline gap-2">
-          <h1 className="text-xl font-semibold text-white drop-shadow-lg tracking-tight">
-            {branding.tagline}
-            <span className="mx-2 text-white/50">·</span>
-            <span className="font-semibold text-white/85">
-              {branding.name}
-            </span>
+        <div className="flex items-baseline gap-2 min-w-0">
+          <h1 className="text-base sm:text-xl font-semibold text-white drop-shadow-lg tracking-tight truncate">
+            <span className="hidden sm:inline">{branding.tagline}</span>
+            <span className="hidden sm:inline mx-2 text-white/50">·</span>
+            <span className="font-semibold text-white/85">{branding.name}</span>
           </h1>
-          {renderStatus()}
+          <span className="hidden sm:inline">{renderStatus()}</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative">
+      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <div className="hidden lg:block relative">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/70" />
           <input
             data-testid="header-search-input"
@@ -91,7 +89,7 @@ export function AppHeader({ status, onSettingsClick }: AppHeaderProps) {
         </button>
         <div
           data-testid="header-avatar"
-          className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-sm font-semibold shadow-lg"
+          className="hidden sm:flex h-9 w-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 items-center justify-center text-white text-sm font-semibold shadow-lg"
         >
           M
         </div>
