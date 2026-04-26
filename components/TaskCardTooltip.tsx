@@ -44,8 +44,11 @@ export function TaskCardTooltip({
           side="top"
           align="start"
           sideOffset={6}
-          className="max-w-[280px] bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-2xl px-3 py-2.5"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          className="pointer-events-auto max-w-[280px] bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-2xl px-3 py-2.5"
           data-testid="task-tooltip"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           {hasDescription && (
             <p className="text-[12px] leading-snug whitespace-pre-wrap break-words text-white/95">
