@@ -582,10 +582,11 @@ export function SettingsPanel({
             </span>
           </>
         }
-        confirmLabel="Ja, slett alt"
+        confirmLabel="Slett alle oppgaver"
         cancelLabel="Avbryt"
         variant="destructive"
         busy={isResetting}
+        requireConfirmText="Slett DB"
         onConfirm={confirmReset}
         onCancel={() => {
           if (!isResetting) setResetDialogOpen(false);

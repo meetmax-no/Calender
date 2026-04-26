@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 
 export type ConfirmVariant = "default" | "destructive";
@@ -17,6 +17,12 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   /** Hvis true, deaktiveres confirm-knappen mens en handling kjører */
   busy?: boolean;
+  /**
+   * Vercel-stil "type to confirm". Hvis satt, må brukeren skrive denne strengen
+   * NØYAKTIG (case-sensitive) i et tekstfelt før confirm-knappen blir aktiv.
+   * Brukes for ekstra-destruktive handlinger.
+   */
+  requireConfirmText?: string;
 }
 
 /**
@@ -35,8 +41,15 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   busy = false,
+  requireConfirmText,
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const [typedText, setTypedText] = useState("");
+
+  // Reset typed text når dialogen åpnes/lukkes
+  useEffect(() => {
+    if (!open) setTypedText("");
+  }, [open]);
 
   // Auto-fokus på Cancel-knappen når dialogen åpnes
   useEffect(() => {
@@ -59,6 +72,9 @@ export function ConfirmDialog({
   if (!open) return null;
 
   const isDestructive = variant === "destructive";
+  const textConfirmRequired = Boolean(requireConfirmText);
+  const textMatches = !textConfirmRequired || typedText === requireConfirmText;
+  const confirmDisabled = busy || !textMatches;
 
   return (
     <div
@@ -93,6 +109,27 @@ export function ConfirmDialog({
             <div id="confirm-desc" className="mt-2 text-sm text-white/70 leading-relaxed">
               {description}
             </div>
+            {textConfirmRequired && (
+              <div className="mt-4">
+                <label className="block text-xs text-white/60 mb-1.5">
+                  Skriv{" "}
+                  <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono text-rose-200 font-semibold">
+                    {requireConfirmText}
+                  </code>{" "}
+                  for å bekrefte:
+                </label>
+                <input
+                  data-testid="confirm-dialog-text-input"
+                  type="text"
+                  value={typedText}
+                  onChange={(e) => setTypedText(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="w-full bg-white/5 border border-white/15 rounded-md px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-rose-400/40 focus:border-rose-400/40 font-mono"
+                  placeholder={requireConfirmText}
+                />
+              </div>
+            )}
           </div>
           <button
             data-testid="confirm-dialog-x"
@@ -118,7 +155,7 @@ export function ConfirmDialog({
           <button
             data-testid="confirm-dialog-confirm"
             onClick={onConfirm}
-            disabled={busy}
+            disabled={confirmDisabled}
             className={`px-4 py-2 rounded-lg text-sm font-medium shadow transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
               isDestructive
                 ? "bg-rose-500 hover:bg-rose-600 focus:ring-rose-300/50 text-white"
