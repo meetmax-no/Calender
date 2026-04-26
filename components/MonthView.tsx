@@ -307,6 +307,7 @@ function MonthRow({
                     description={t.description}
                     estimateHours={t.estimateHours}
                     blockedBy={dep?.title}
+                    onBlockedClick={dep ? () => onTodoClick(dep) : undefined}
                   >
                     <div
                       data-testid={`month-todo-${t.id}`}

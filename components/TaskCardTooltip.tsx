@@ -14,6 +14,8 @@ interface TaskCardTooltipProps {
   estimateHours?: number;
   /** Hvis satt: viser "Venter på X" som blokkering-info */
   blockedBy?: string;
+  /** Callback når brukeren klikker på "Venter på"-linjen i tooltip */
+  onBlockedClick?: () => void;
   children: ReactNode;
 }
 
@@ -26,6 +28,7 @@ export function TaskCardTooltip({
   description,
   estimateHours,
   blockedBy,
+  onBlockedClick,
   children,
 }: TaskCardTooltipProps) {
   const hasDescription = description && description.trim() !== "";
@@ -56,17 +59,30 @@ export function TaskCardTooltip({
             </p>
           )}
           {hasBlocked && (
-            <div
+            <button
+              type="button"
               data-testid="task-tooltip-blocked"
-              className={`flex items-center gap-1.5 text-[11px] text-amber-200 ${
+              onClick={(e) => {
+                e.stopPropagation();
+                onBlockedClick?.();
+              }}
+              disabled={!onBlockedClick}
+              className={`flex items-center gap-1.5 text-[11px] text-amber-200 w-full text-left transition ${
                 hasDescription ? "mt-1.5 pt-1.5 border-t border-white/15" : ""
-              }`}
+              } ${onBlockedClick ? "hover:text-amber-100 cursor-pointer" : ""}`}
             >
               <Lock className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">
-                Venter på: <strong className="font-semibold">{blockedBy}</strong>
+                Venter på:{" "}
+                <strong
+                  className={`font-semibold ${
+                    onBlockedClick ? "underline decoration-dotted underline-offset-2" : ""
+                  }`}
+                >
+                  {blockedBy}
+                </strong>
               </span>
-            </div>
+            </button>
           )}
           {estimateHours !== undefined && (
             <div
