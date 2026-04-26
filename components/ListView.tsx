@@ -13,7 +13,7 @@ import {
   Printer,
   Lock,
 } from "lucide-react";
-import type { Todo, TimeSlot } from "@/lib/types";
+import type { Todo } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
 import { getISOWeek, toDateKey } from "@/lib/date";
 import { format } from "date-fns";
@@ -536,5 +536,149 @@ function HeaderCell({ testId, active, onClick, icon, className, children }: Head
         {icon}
       </button>
     </th>
+  );
+}
+
+// ================== Mobile card list ==================
+
+interface MobileCardListProps {
+  todos: Todo[];
+  allTodos: Todo[];
+  config: AppConfig;
+  onTodoEdit: (todo: Todo) => void;
+  onTodoToggle: (id: string) => void;
+}
+
+function MobileCardList({
+  todos,
+  allTodos,
+  config,
+  onTodoEdit,
+  onTodoToggle,
+}: MobileCardListProps) {
+  return (
+    <ul data-testid="mobile-card-list" className="flex flex-col gap-2">
+      {todos.map((t) => {
+        const typeConfig = config.taskTypes[t.type];
+        const dateObj = new Date(t.date);
+        const dep = getDependency(t, allTodos);
+        const blocked = !t.completed && Boolean(dep) && !dep!.completed;
+        const dateStr = format(dateObj, "EEE d. MMM", { locale: nb })
+          .replace(/\.$/, "")
+          .toLowerCase();
+
+        return (
+          <li
+            key={t.id}
+            data-testid={`mobile-card-${t.id}`}
+            className={`bg-white/[0.06] backdrop-blur-sm rounded-xl border border-white/10 p-3 flex items-start gap-3 transition ${
+              t.completed ? "opacity-60" : ""
+            }`}
+          >
+            {/* Status / blokk-knapp */}
+            <button
+              data-testid={`mobile-toggle-${t.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (blocked && dep) {
+                  onTodoEdit(dep);
+                  return;
+                }
+                onTodoToggle(t.id);
+              }}
+              aria-label={
+                blocked
+                  ? `Blokkert — åpne "${dep?.title}"`
+                  : t.completed
+                    ? "Marker ikke ferdig"
+                    : "Marker ferdig"
+              }
+              className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition ${
+                blocked
+                  ? "border-amber-300/50 bg-amber-500/10"
+                  : t.completed
+                    ? "bg-emerald-500 border-emerald-500"
+                    : "border-white/30"
+              }`}
+            >
+              {blocked ? (
+                <Lock className="h-3.5 w-3.5 text-amber-300" strokeWidth={3} />
+              ) : t.completed ? (
+                <Check className="h-3.5 w-3.5 text-white" strokeWidth={4} />
+              ) : null}
+            </button>
+
+            {/* Hovedinnhold — hele blokken er trykkbar for redigering */}
+            <button
+              data-testid={`mobile-edit-${t.id}`}
+              onClick={() => onTodoEdit(t)}
+              className="flex-1 min-w-0 text-left"
+            >
+              {/* Tittel */}
+              <div
+                className={`text-sm font-medium leading-snug ${
+                  t.completed ? "line-through text-white/60" : "text-white"
+                }`}
+              >
+                {t.title}
+              </div>
+
+              {/* Meta-rad: type-chip + dato/slot + estimat */}
+              <div className="mt-1.5 flex items-center gap-2 flex-wrap text-[11px]">
+                {typeConfig && (
+                  <span
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-medium"
+                    style={{
+                      backgroundColor: `${typeConfig.color}30`,
+                      color: "white",
+                    }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: typeConfig.color }}
+                    />
+                    {typeConfig.label}
+                  </span>
+                )}
+                <span className="text-white/60 tabular-nums">
+                  {dateStr} · {t.slot}
+                </span>
+                {t.estimateHours !== undefined && (
+                  <span
+                    data-testid={`mobile-estimate-${t.id}`}
+                    className="text-white/50 tabular-nums"
+                  >
+                    · {formatHours(t.estimateHours)}
+                  </span>
+                )}
+              </div>
+
+              {/* Venter-på rad */}
+              {dep && (
+                <div
+                  className={`mt-1.5 flex items-center gap-1.5 text-[11px] ${
+                    dep.completed ? "text-emerald-300/70" : "text-amber-200"
+                  }`}
+                >
+                  {dep.completed ? (
+                    <Check className="h-3 w-3 flex-shrink-0" strokeWidth={3} />
+                  ) : (
+                    <Lock className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <span className="truncate">Venter på: {dep.title}</span>
+                </div>
+              )}
+
+              {/* Beskrivelse */}
+              {t.description && (
+                <div className="mt-1 text-[11px] text-white/50 line-clamp-2">
+                  {t.description}
+                </div>
+              )}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -254,6 +254,7 @@ export default function Home() {
               config={config}
               todos={todos}
               visibleTypes={visibleTypes}
+              onToggleType={handleToggleVisible}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
               statusCounts={statusCounts}

@@ -106,9 +106,20 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 ### Backlog/nice-to-have
 - [ ] Day / Week-visning i tillegg til Month
 - [ ] Drag-drop for å flytte oppgaver mellom dager
-- [ ] Gjentakende oppgaver
-- [ ] Auth / multi-user
-- [ ] Mobile responsive layout
+- [x] Gjentakende oppgaver
+- [ ] Auth / multi-user (Google Auth via NextAuth — P1)
+- [x] Mobile responsive layout (MVP ferdig 2026-04-26)
+- [ ] "Last ned alle data" backup-knapp i Settings (P1)
+- [ ] Faktisk tid vs estimat (P2)
+- [ ] Kopier oppgave til neste uke (P2)
+- [ ] Globalt søk på tvers av oppgaver (P2)
+
+### Mobile MVP (ferdig 2026-04-26)
+- `useIsMobile()` hook (breakpoint 768px)
+- `app/page.tsx`: tvinger Liste-visning på mobil, FAB for ny oppgave, bruker `urlPortrait` fra config når mobil
+- `ListView.tsx`: skjuler tabell på mobil og rendrer ny `MobileCardList`-komponent (kort med tittel, type-chip, dato/slot, estimat, "venter på"-rad, dependency-aware ferdig-knapp)
+- Topplinje på mobil: status-filter + sort-dropdown + horisontal type-chip-rad + kompakt stats-rad
+- Portrett-versjon av bakgrunnsbilder via `urlPortrait` i client-config
 
 ## Next tasks (ved neste session)
 1. Motta jsonbin credentials fra bruker
