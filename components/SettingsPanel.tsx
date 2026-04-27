@@ -10,7 +10,6 @@ import { getActiveTaskTypes } from "@/hooks/useAppConfig";
 import { generateIcs, downloadIcs } from "@/lib/ics";
 import { downloadBackup, readBackupFile, getLastBackupAt, formatRelativeTime } from "@/lib/backup";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { toast } from "sonner";
 
 interface SettingsPanelProps {
@@ -56,7 +55,6 @@ export function SettingsPanel({
   demoMode = false,
 }: SettingsPanelProps) {
   const activeTypes = getActiveTaskTypes(config);
-  const isMobile = useIsMobile();
   const [exportTypes, setExportTypes] = useState<Set<string>>(
     new Set(activeTypes.map((t) => t.key)),
   );

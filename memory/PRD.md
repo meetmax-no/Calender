@@ -188,12 +188,19 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 - Tastatur-navigasjon: ↑/↓/Enter/Esc
 - Highlight på matchende ord
 
-## Next tasks (ved neste session)
-1. Motta jsonbin credentials fra bruker
-2. Implementer API route + hook
-3. Koble på create/edit/delete UI
-4. Implementer ekte datologikk
-5. Test end-to-end lokalt → push til GitHub → Vercel deploy
+## Changelog
+
+### v4.6.0 — 2026-04-27
+- Fjernet "Ensfarget" (solid color) picker fra `SettingsPanel.tsx`
+- Mobil-bakgrunn styres nå utelukkende fra `clients/*.json` via `mobileSolidBackground: boolean` + `mobileSolidColor: string` (default `#1A1A1A`)
+- Ryddet ubrukt `useIsMobile`-import og orfanerte `solidColor`/`onSelectSolidColor`-props i `app/page.tsx`
+- Verifisert: `tsc --noEmit` ren, `yarn build` ren (20s), settings-panel screenshot bekrefter ingen fargevelger
+
+## Next tasks (v5.0 — ved neste session)
+1. Google Auth-integrasjon + ACL for Public/Private/Team-synlighet (P1)
+2. Automatiserte GitHub-backups per tenant via Vercel Cron (P1)
+3. Automatisert demo-mode restore via Cron (P2)
+4. Refaktorering: bryte ned `app/page.tsx` og `components/TaskModal.tsx` (P2)
 
 
 ## 🔧 GitHub-sync workflow (KRITISK for nye agenter)

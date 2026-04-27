@@ -400,10 +400,8 @@ export default function Home() {
         todos={todos}
         backgroundIndex={prefs.backgroundIndex}
         backgroundMode={prefs.backgroundMode}
-        solidColor={prefs.solidColor}
         onSelectBackground={(idx) => setPrefs({ backgroundIndex: idx })}
         onSelectMode={(mode) => setPrefs({ backgroundMode: mode })}
-        onSelectSolidColor={(hex) => setPrefs({ solidColor: hex })}
         requestedClient={requestedClient}
         activeClient={activeClient}
         configError={configError}
