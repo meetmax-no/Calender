@@ -524,8 +524,41 @@ export function SettingsPanel({
           )}
         </section>
 
-        <div className="mt-6 pt-4 border-t border-white/10 text-[11px] text-white/40">
-        </div>
+        {/* ============== Tenant-info (read-only footer) ============== */}
+        <section
+          data-testid="settings-tenant-info"
+          className="mt-6 pt-4 border-t border-white/10"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">
+              Tenant
+            </h3>
+            <code
+              data-testid="tenant-active-client"
+              className="text-[10px] text-white/40 font-mono"
+            >
+              clients/{activeClient}.json
+            </code>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+            <InfoRow label="Brand" value={branding.name} />
+            <InfoRow label="Tagline" value={branding.tagline} />
+            <InfoRow label="Versjon" value={branding.version} />
+            <InfoRow
+              label="Demo-modus"
+              value={
+                <span
+                  data-testid="tenant-demo-mode"
+                  className={demoMode ? "text-amber-200" : "text-white/70"}
+                >
+                  {demoMode
+                    ? `På · uke ${config.demoAnchorWeek ?? "—"}`
+                    : "Av"}
+                </span>
+              }
+            />
+          </div>
+        </section>
       </div>
 
       {/* ============== Confirm dialogs ============== */}

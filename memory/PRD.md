@@ -194,7 +194,8 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 - Fjernet "Ensfarget" (solid color) picker fra `SettingsPanel.tsx`
 - Mobil-bakgrunn styres nå utelukkende fra `clients/*.json` via `mobileSolidBackground: boolean` + `mobileSolidColor: string` (default `#1A1A1A`)
 - Ryddet ubrukt `useIsMobile`-import og orfanerte `solidColor`/`onSelectSolidColor`-props i `app/page.tsx`
-- Verifisert: `tsc --noEmit` ren, `yarn build` ren (20s), settings-panel screenshot bekrefter ingen fargevelger
+- Lagt til read-only "Tenant"-seksjon nederst i Settings (Brand / Tagline / Versjon / Demo-modus med uke-nr) for rask tenant-verifisering under sales-demoer
+- Verifisert: `tsc --noEmit` ren, `yarn build` ren, settings-panel screenshot bekrefter ingen fargevelger og synlig tenant-info
 
 ## Next tasks (v5.0 — ved neste session)
 1. Google Auth-integrasjon + ACL for Public/Private/Team-synlighet (P1)
