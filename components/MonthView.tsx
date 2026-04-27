@@ -15,7 +15,7 @@ import {
   subMonths,
 } from "@/lib/date";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
-import { TaskCardTooltip, formatHours } from "./TaskCardTooltip";
+import { TaskCardTooltip, formatHours, VisibilityDot } from "./TaskCardTooltip";
 import { isBlocked, getDependency } from "@/lib/deps";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -383,6 +383,7 @@ function MonthRow({
                       >
                         {t.title}
                       </button>
+                      <VisibilityDot visibility={t.visibility} className="flex-shrink-0 ring-1 ring-black/20" />
                       {t.estimateHours !== undefined && (
                         <span
                           data-testid={`month-todo-estimate-${t.id}`}

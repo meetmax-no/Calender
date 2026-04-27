@@ -11,7 +11,7 @@ export interface Branding {
   version: string;
 }
 
-export const APP_VERSION = "v4.5.3";
+export const APP_VERSION = "v4.6.0";
 
 export function getBranding(): Branding {
   return {

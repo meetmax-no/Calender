@@ -15,6 +15,7 @@ import { LoadingToast } from "@/components/LoadingToast";
 import { TaskModal, type ModalMode } from "@/components/TaskModal";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { WeekStats } from "@/components/WeekStats";
+import { VisibilityFilterBar } from "@/components/VisibilityFilterBar";
 import type { StatusFilter } from "@/components/StatusFilterBar";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
@@ -40,6 +41,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"week" | "month" | "list">("week");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "public" | "private">("all");
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -185,19 +187,39 @@ export default function Home() {
     }
   };
 
-  // Tellere for statusfilter (basert på synlige typer)
+  // Filtrer todos basert på visibility-valg
+  const filteredTodos = useMemo(() => {
+    if (visibilityFilter === "all") return todos;
+    return todos.filter((t) => {
+      const v = t.visibility ?? config.defaultVisibility ?? "public";
+      return v === visibilityFilter;
+    });
+  }, [todos, visibilityFilter, config.defaultVisibility]);
+
+  // Tellere for statusfilter (basert på synlige typer + filtrert liste)
   const statusCounts = useMemo(() => {
-    const visible = todos.filter((t) => visibleTypes.has(t.type));
+    const visible = filteredTodos.filter((t) => visibleTypes.has(t.type));
     return {
       all: visible.length,
       open: visible.filter((t) => !t.completed).length,
       done: visible.filter((t) => t.completed).length,
     };
-  }, [todos, visibleTypes]);
+  }, [filteredTodos, visibleTypes]);
+
+  // Tellere for visibility-filter (uavhengig av aktiv visibility-filter, basert på synlige typer)
+  const visibilityCounts = useMemo(() => {
+    const visible = todos.filter((t) => visibleTypes.has(t.type));
+    const defaultVis = config.defaultVisibility ?? "public";
+    return {
+      all: visible.length,
+      public: visible.filter((t) => (t.visibility ?? defaultVis) === "public").length,
+      private: visible.filter((t) => (t.visibility ?? defaultVis) === "private").length,
+    };
+  }, [todos, visibleTypes, config.defaultVisibility]);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {prefs.backgroundMode === "solid" ? (
+      {prefs.backgroundMode === "solid" && isMobile ? (
         <div
           className="absolute inset-0"
           style={{ backgroundColor: prefs.solidColor || "#1A1A1A" }}
@@ -226,10 +248,18 @@ export default function Home() {
         status={status}
         onSettingsClick={() => setSettingsOpen(true)}
         onSearchClickMobile={() => setSearchOpen(true)}
-        todos={todos}
+        todos={filteredTodos}
         config={config}
         onSelectTodo={handleTodoClick}
         demoMode={demoMode}
+        centerSlot={
+          <WeekStats
+            anchorDate={anchorDate}
+            todos={filteredTodos}
+            visibleTypes={visibleTypes}
+            compact
+          />
+        }
       />
 
       <main className="relative h-screen w-full pt-20 flex">
@@ -247,7 +277,11 @@ export default function Home() {
 
             <div className="h-px bg-white/10 my-2" />
 
-            <WeekStats anchorDate={anchorDate} todos={todos} visibleTypes={visibleTypes} />
+            <VisibilityFilterBar
+              value={visibilityFilter}
+              onChange={setVisibilityFilter}
+              counts={visibilityCounts}
+            />
 
             <TaskTypesPanel
               config={config}
@@ -274,7 +308,7 @@ export default function Home() {
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               config={config}
-              todos={todos}
+              todos={filteredTodos}
               visibleTypes={visibleTypes}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
@@ -292,7 +326,7 @@ export default function Home() {
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               config={config}
-              todos={todos}
+              todos={filteredTodos}
               visibleTypes={visibleTypes}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
@@ -308,7 +342,7 @@ export default function Home() {
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               config={config}
-              todos={todos}
+              todos={filteredTodos}
               visibleTypes={visibleTypes}
               onToggleType={handleToggleVisible}
               statusFilter={statusFilter}

@@ -111,3 +111,25 @@ export function formatHours(hours: number): string {
   if (m === 0) return `${h}t`;
   return `${h}t ${m}min`;
 }
+
+/** Liten farget prikk for å markere synlighet. Blå=public, grønn=privat. */
+export function VisibilityDot({
+  visibility,
+  className = "",
+}: {
+  visibility?: "public" | "private";
+  defaultVisibility?: "public" | "private";
+  className?: string;
+}) {
+  const v = visibility ?? "public";
+  const color = v === "private" ? "bg-emerald-400" : "bg-blue-400";
+  const label = v === "private" ? "Privat" : "Offentlig";
+  return (
+    <span
+      data-testid={`visibility-dot-${v}`}
+      title={label}
+      aria-label={label}
+      className={`inline-block w-1.5 h-1.5 rounded-full ${color} ${className}`}
+    />
+  );
+}

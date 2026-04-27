@@ -9,6 +9,7 @@ import { getActiveTaskTypes } from "@/hooks/useAppConfig";
 import { addDays, addMonths } from "date-fns";
 import { DependencyPicker } from "./DependencyPicker";
 import { getDependency, isBlocked, getDependencyCandidates } from "@/lib/deps";
+import { EmojiPicker } from "./EmojiPicker";
 
 export type ModalMode =
   | { kind: "create"; initialDate?: string; initialSlot?: TimeSlot; initialType?: string }
@@ -84,6 +85,7 @@ export function TaskModal({
           description: mode.todo.description ?? "",
           estimate: mode.todo.estimateHours?.toString() ?? "",
           waitingFor: mode.todo.waitingFor,
+          visibility: mode.todo.visibility ?? config.defaultVisibility ?? "public",
           completed: mode.todo.completed,
         }
       : {
@@ -98,6 +100,7 @@ export function TaskModal({
           description: "",
           estimate: "",
           waitingFor: undefined as string | undefined,
+          visibility: (config.defaultVisibility ?? "public") as "public" | "private",
           completed: false,
         };
 
@@ -108,6 +111,7 @@ export function TaskModal({
   const [description, setDescription] = useState(initialValues.description);
   const [estimate, setEstimate] = useState(initialValues.estimate);
   const [waitingFor, setWaitingFor] = useState<string | undefined>(initialValues.waitingFor);
+  const [visibility, setVisibility] = useState<"public" | "private">(initialValues.visibility);
   const [completed, setCompleted] = useState(initialValues.completed);
   const [completeBlockedHint, setCompleteBlockedHint] = useState<string | null>(null);
 
@@ -164,6 +168,7 @@ export function TaskModal({
         description: description.trim() || undefined,
         estimateHours: parsedEstimate,
         waitingFor: waitingFor || undefined,
+        visibility,
         completed: false,
         createdAt: now,
         updatedAt: now,
@@ -190,6 +195,7 @@ export function TaskModal({
             description: description.trim() || undefined,
             estimateHours: parsedEstimate,
             waitingFor: waitingFor || undefined,
+            visibility,
             completed,
             updatedAt: now,
           }
@@ -202,6 +208,7 @@ export function TaskModal({
             description: description.trim() || undefined,
             estimateHours: parsedEstimate,
             waitingFor: waitingFor || undefined,
+            visibility,
             completed,
             createdAt: now,
             updatedAt: now,
@@ -285,15 +292,18 @@ export function TaskModal({
             <label className="block text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wider">
               Tittel
             </label>
-            <input
-              data-testid="modal-title-input"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="F.eks. Følg opp Acme AS"
-              autoFocus
-              className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-400/40 placeholder:text-white/30"
-            />
+            <div className="flex items-stretch gap-2">
+              <EmojiPicker value={title} onChange={setTitle} />
+              <input
+                data-testid="modal-title-input"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="F.eks. Følg opp Acme AS"
+                autoFocus
+                className="flex-1 bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-400/40 placeholder:text-white/30"
+              />
+            </div>
           </div>
 
           {/* Type */}
@@ -384,6 +394,41 @@ export function TaskModal({
               placeholder="Notater, lenke, kontekst..."
               className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/60 placeholder:text-white/30 resize-none"
             />
+          </div>
+
+          {/* Synlighet */}
+          <div>
+            <label className="block text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wider">
+              Synlighet
+            </label>
+            <div data-testid="modal-visibility-picker" className="inline-flex bg-white/5 border border-white/15 rounded-lg p-0.5">
+              <button
+                type="button"
+                data-testid="modal-visibility-public"
+                onClick={() => setVisibility("public")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                  visibility === "public"
+                    ? "bg-white/15 text-white"
+                    : "text-white/60 hover:text-white/90"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-blue-400" />
+                Offentlig
+              </button>
+              <button
+                type="button"
+                data-testid="modal-visibility-private"
+                onClick={() => setVisibility("private")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                  visibility === "private"
+                    ? "bg-white/15 text-white"
+                    : "text-white/60 hover:text-white/90"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                Privat
+              </button>
+            </div>
           </div>
 
           {/* Estimat (valgfritt) */}

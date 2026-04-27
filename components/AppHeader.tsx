@@ -17,6 +17,8 @@ interface AppHeaderProps {
   config: AppConfig;
   onSelectTodo: (todo: Todo) => void;
   demoMode?: boolean;
+  /** Slot for sentralt innhold i headeren (f.eks. WeekStats compact). Kun desktop. */
+  centerSlot?: React.ReactNode;
 }
 
 export function AppHeader({
@@ -27,6 +29,7 @@ export function AppHeader({
   config,
   onSelectTodo,
   demoMode = false,
+  centerSlot,
 }: AppHeaderProps) {
   const branding = getBranding();
   const isMobile = useIsMobile();
@@ -100,6 +103,18 @@ export function AppHeader({
           {renderStatus()}
         </div>
       </div>
+
+      {/* Sentralt slot: brukes til WeekStats compact på desktop */}
+      {centerSlot && !isMobile && (
+        <div
+          data-testid="header-center-slot"
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+        >
+          <div className="pointer-events-auto bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-full">
+            {centerSlot}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
         {!isMobile && (

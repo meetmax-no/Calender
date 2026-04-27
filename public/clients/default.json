@@ -3,6 +3,7 @@
   "updatedAt": "2026-04-22",
   "demoMode": false,
   "demoAnchorWeek": 18,
+  "defaultVisibility": "public",
   "taskTypes": {
     "TRACK1": {
       "label": "S1-LinkedIn",

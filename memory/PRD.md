@@ -122,7 +122,38 @@ Brukeren (meetmax-no) har et GitHub-repo (Calender) med en Next.js 15 + React 19
 - Portrett-versjon av bakgrunnsbilder via `urlPortrait` i client-config
 - Bakgrunn dempes med `bg-black/65 backdrop-blur` på mobil for bedre lesbarhet
 
-### v4.5.3 features (2026-04-26)
+### v4.6.0 features (2026-04-27)
+**Tid-format:** `formatHours()` i `TaskCardTooltip.tsx` viser nå "1t 30min" / "45min" / "2t" i stedet for desimaler
+
+**Estimat-presets** i TaskModal: `15min / 30min / 1t / 2t / 4t` (la til 15min/0.25t)
+
+**Settings-rydding:**
+- Fjernet "Tips: Rediger task-typer..."-linja
+- Mobil-only solid bakgrunnsfarge: ny "Ensfarget"-mode + hex-color-picker (default `#1A1A1A`). Ikke synlig på desktop
+
+**Mobil header & footer:**
+- Online-status synlig som kompakt ikon i mobil-header
+- Footer: kortere tekst (`By Ko|Do Consult`) + `whitespace-nowrap` så den ikke knekker
+
+**WeekStats flyttet (desktop):**
+- Tidligere lå i sidebar under MiniCalendar (tok plass fra Tasks-typer)
+- Nå: compact-modus midt i top-headeren som glass-pill
+
+**Emoji-picker (`components/EmojiPicker.tsx`):**
+- Liten knapp ved siden av tittel-input i TaskModal
+- 9 standard-emojis: 📞 📧 📄 💬 📅 ✏️ 💡 🎯 ⚙️
+- Emoji lagres som første tegn i tittel-strengen (ingen schema-endring)
+- Bruker Intl.Segmenter for å håndtere multi-codepoint-emojis korrekt
+- "Fjern emoji"-knapp når en allerede er satt
+
+**Privat/Public synlighet (foreløpig MVP — ikke ekte ACL):**
+- Nytt felt `visibility?: "public" | "private"` på Todo
+- Ny config-flagg `defaultVisibility` per klient
+- Toggle i TaskModal: Offentlig (blå prikk) / Privat (grønn prikk)
+- Filter-bar i sidebar: Alle / Offentlig / Privat med tellere
+- Liten farget prikk på todo-kort i Uke, Måned, Liste (desktop+mobil)
+- Når Auth kommer i v5.0 koples ekte filtrering per bruker på toppen
+
 **Demo-modus (`demoMode` + `demoAnchorWeek` i config):**
 - Ny config-flagg `demoMode: boolean` per klient-fil (`default.json`, `meetmax.json`, `_template.json`)
 - `demoAnchorWeek: number` setter ISO-ukeøyeblikket appen åpner i ved oppstart

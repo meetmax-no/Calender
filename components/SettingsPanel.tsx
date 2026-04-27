@@ -10,6 +10,7 @@ import { getActiveTaskTypes } from "@/hooks/useAppConfig";
 import { generateIcs, downloadIcs } from "@/lib/ics";
 import { downloadBackup, readBackupFile, getLastBackupAt, formatRelativeTime } from "@/lib/backup";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { toast } from "sonner";
 
 interface SettingsPanelProps {
@@ -59,6 +60,7 @@ export function SettingsPanel({
   demoMode = false,
 }: SettingsPanelProps) {
   const activeTypes = getActiveTaskTypes(config);
+  const isMobile = useIsMobile();
   const [exportTypes, setExportTypes] = useState<Set<string>>(
     new Set(activeTypes.map((t) => t.key)),
   );
@@ -311,7 +313,7 @@ export function SettingsPanel({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-2" data-testid="settings-mode-picker">
+          <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-3"} gap-2 mb-2`} data-testid="settings-mode-picker">
             <ModeOption
               testId="mode-fixed"
               active={backgroundMode === "fixed"}
@@ -336,22 +338,24 @@ export function SettingsPanel({
               label="Tilfeldig"
               description="Nytt ved hver sidelast"
             />
-            <ModeOption
-              testId="mode-solid"
-              active={backgroundMode === "solid"}
-              onClick={() => onSelectMode("solid")}
-              icon={
-                <span
-                  className="h-4 w-4 rounded border border-white/30"
-                  style={{ backgroundColor: solidColor }}
-                />
-              }
-              label="Ensfarget"
-              description="Solid bakgrunnsfarge"
-            />
+            {isMobile && (
+              <ModeOption
+                testId="mode-solid"
+                active={backgroundMode === "solid"}
+                onClick={() => onSelectMode("solid")}
+                icon={
+                  <span
+                    className="h-4 w-4 rounded border border-white/30"
+                    style={{ backgroundColor: solidColor }}
+                  />
+                }
+                label="Ensfarget"
+                description="Solid bakgrunn (kun mobil)"
+              />
+            )}
           </div>
 
-          {backgroundMode === "solid" && (
+          {isMobile && backgroundMode === "solid" && (
             <div
               data-testid="solid-color-picker"
               className="mb-4 flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10"

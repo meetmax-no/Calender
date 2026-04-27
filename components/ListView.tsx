@@ -19,7 +19,7 @@ import { getISOWeek, toDateKey } from "@/lib/date";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
-import { formatHours } from "./TaskCardTooltip";
+import { formatHours, VisibilityDot } from "./TaskCardTooltip";
 import { getDependency } from "@/lib/deps";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { getActiveTaskTypes } from "@/hooks/useAppConfig";
@@ -431,9 +431,10 @@ export function ListView({
                       {/* Tittel + beskrivelse */}
                       <td className="px-3 py-3 text-white">
                         <div
-                          className={`font-medium ${t.completed ? "line-through text-white/60" : ""}`}
+                          className={`flex items-center gap-1.5 font-medium ${t.completed ? "line-through text-white/60" : ""}`}
                         >
-                          {t.title}
+                          <VisibilityDot visibility={t.visibility} />
+                          <span>{t.title}</span>
                         </div>
                         {t.description && (
                           <div className="text-[11px] text-white/50 mt-0.5 truncate max-w-md">
@@ -627,11 +628,12 @@ function MobileCardList({
             >
               {/* Tittel */}
               <div
-                className={`text-sm font-medium leading-snug ${
+                className={`flex items-center gap-1.5 text-sm font-medium leading-snug ${
                   t.completed ? "line-through text-white/60" : "text-white"
                 }`}
               >
-                {t.title}
+                <VisibilityDot visibility={t.visibility} className="flex-shrink-0" />
+                <span>{t.title}</span>
               </div>
 
               {/* Meta-rad: type-chip + dato/slot + estimat */}
