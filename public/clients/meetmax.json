@@ -3,12 +3,12 @@
     "client": "Me & Max AS",
     "createdAt": "2026-04-27",
     "createdBy": "Ko|Do Consult",
-    "notes": "Kontakt: firma@meetmax.no | Bestilt: 2026-04-24",
-    "defaultVisibility": "public",
-    "demoMode": false,
-    "demoAnchorWeek": 18
+    "notes": "Kontakt: firma@meetmax.no | Bestilt: 2026-04-24"
   },
-  "emojiPresets": ["📞", "📧", "📄", "💬", "📅", "✏️", "💡", "🎯", "⚙️"],
+  "defaultVisibility": "public",
+  "demoMode": true,
+  "demoAnchorWeek": 18,
+  "emojiPresets": ["☎️", "📄", "📩", "💡", "📅", "✏️", "🚀", "🧨", "🐕"],
   "taskTypes": {
     "T1": {
       "label": "Annet",
