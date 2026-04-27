@@ -252,20 +252,12 @@ export default function Home() {
         config={config}
         onSelectTodo={handleTodoClick}
         demoMode={demoMode}
-        centerSlot={
-          <WeekStats
-            anchorDate={anchorDate}
-            todos={filteredTodos}
-            visibleTypes={visibleTypes}
-            compact
-          />
-        }
       />
 
       <main className="relative h-screen w-full pt-20 flex">
         <aside
           data-testid="app-sidebar"
-          className={`${isMobile ? "hidden" : "flex"} w-72 h-full bg-white/10 backdrop-blur-xl border-r border-white/20 rounded-tr-3xl flex-col`}
+          className={`${isMobile ? "hidden" : "flex"} w-80 h-full bg-white/10 backdrop-blur-xl border-r border-white/20 rounded-tr-3xl flex-col`}
         >
           <div className="flex-1 p-5 flex flex-col gap-2 overflow-y-auto">
             <MiniCalendar

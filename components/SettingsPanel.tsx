@@ -313,7 +313,7 @@ export function SettingsPanel({
             </span>
           </div>
 
-          <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-3"} gap-2 mb-2`} data-testid="settings-mode-picker">
+          <div className="grid grid-cols-2 gap-2 mb-2" data-testid="settings-mode-picker">
             <ModeOption
               testId="mode-fixed"
               active={backgroundMode === "fixed"}
@@ -338,24 +338,22 @@ export function SettingsPanel({
               label="Tilfeldig"
               description="Nytt ved hver sidelast"
             />
-            {isMobile && (
-              <ModeOption
-                testId="mode-solid"
-                active={backgroundMode === "solid"}
-                onClick={() => onSelectMode("solid")}
-                icon={
-                  <span
-                    className="h-4 w-4 rounded border border-white/30"
-                    style={{ backgroundColor: solidColor }}
-                  />
-                }
-                label="Ensfarget"
-                description="Solid bakgrunn (kun mobil)"
-              />
-            )}
+            <ModeOption
+              testId="mode-solid"
+              active={backgroundMode === "solid"}
+              onClick={() => onSelectMode("solid")}
+              icon={
+                <span
+                  className="h-4 w-4 rounded border border-white/30"
+                  style={{ backgroundColor: solidColor }}
+                />
+              }
+              label="Ensfarget"
+              description="Aktiveres kun på mobil"
+            />
           </div>
 
-          {isMobile && backgroundMode === "solid" && (
+          {backgroundMode === "solid" && (
             <div
               data-testid="solid-color-picker"
               className="mb-4 flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10"

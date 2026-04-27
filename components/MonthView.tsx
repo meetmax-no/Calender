@@ -16,6 +16,7 @@ import {
 } from "@/lib/date";
 import { StatusFilterBar, type StatusFilter } from "./StatusFilterBar";
 import { TaskCardTooltip, formatHours, VisibilityDot } from "./TaskCardTooltip";
+import { WeekStats } from "./WeekStats";
 import { isBlocked, getDependency } from "@/lib/deps";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -91,8 +92,8 @@ export function MonthView({
   return (
     <div data-testid="month-view" className="flex-1 flex flex-col min-h-0">
       {/* Kontroll-linje (samme stil som WeekView) */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 p-4 border-b border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <button
             data-testid="month-today-btn"
             onClick={goToToday}
@@ -124,7 +125,19 @@ export function MonthView({
           </h2>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Midt: WeekStats compact */}
+        <div className="flex-1 flex justify-center min-w-0 overflow-hidden">
+          <div className="bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-full max-w-full">
+            <WeekStats
+              anchorDate={anchorDate}
+              todos={todos}
+              visibleTypes={visibleTypes}
+              compact
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 flex-shrink-0">
           <StatusFilterBar
             value={statusFilter}
             onChange={onStatusFilterChange}

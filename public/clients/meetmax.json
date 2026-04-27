@@ -1,50 +1,61 @@
 {
-  "version": "1.0",
-  "updatedAt": "2026-04-22",
-  "demoMode": false,
-  "demoAnchorWeek": 18,
-  "defaultVisibility": "public",
+  "_meta": {
+    "client": "Me & Max AS",
+    "createdAt": "2026-04-27",
+    "createdBy": "Ko|Do Consult",
+    "notes": "Kontakt: firma@meetmax.no | Bestilt: 2026-04-24",
+    "defaultVisibility": "public",
+    "demoMode": false,
+    "demoAnchorWeek": 18
+  },
   "taskTypes": {
-    "TRACK1": {
-      "label": "S1-LinkedIn",
-      "icon": "Linkedin",
-      "color": "#EC4899",
-      "defaultSlot": "10-12",
-      "active": true
-    },
-    "TRACK2": {
-      "label": "S2-NewCustomers",
-      "icon": "UserPlus",
-      "color": "#3B82F6",
-      "defaultSlot": "10-12",
-      "active": true
-    },
-    "TRACK3": {
-      "label": "S3-OldContacts",
-      "icon": "Users",
-      "color": "#06B6D4",
-      "defaultSlot": "12-14",
-      "active": true
-    },
-    "TRACK4": {
-      "label": "S4-TheContract",
-      "icon": "FileSignature",
-      "color": "#22C55E",
-      "defaultSlot": "12-14",
-      "active": true
-    },
-    "ADMIN": {
-      "label": "Admin",
-      "icon": "Lock",
-      "color": "#64748B",
+    "T1": {
+      "label": "Annet",
+      "icon": "Sparkles",
+      "color": "#A855F7",
       "defaultSlot": "08-10",
       "active": true
     },
-    "OTHER": {
-      "label": "Annet",
-      "icon": "Info",
-      "color": "#A855F7",
+    "T2": {
+      "label": "Drift & Økonomi",
+      "icon": "Globe",
+      "color": "#FF0000",
+      "defaultSlot": "08-10",
+      "active": true
+    },
+    "T3": {
+      "label": "Forretningsutvikling",
+      "icon": "Sparkles",
+      "color": "#FFD700",
+      "defaultSlot": "10-12",
+      "active": true
+    },
+    "T4": {
+      "label": "Kunder",
+      "icon": "Users",
+      "color": "#06B6D4",
+      "defaultSlot": "10-12",
+      "active": true
+    },
+    "T5": {
+      "label": "Marketing",
+      "icon": "Calendar",
+      "color": "#EC4899",
       "defaultSlot": "12-14",
+      "active": true
+    },
+    "T6": {
+      "label": "Salg",
+      "icon": "Activity",
+      "color": "#3B82F6",
+      "defaultSlot": "12-14",
+      "active": true
+    },
+    "T7": {
+      "label": "Utvikling",
+      "icon": "File",
+      "color": "#22C55E",
+      "defaultSlot": "14-16",
       "active": true
     }
   },
@@ -123,7 +134,10 @@
     "2026-02-15": "Fastelavn",
     "2026-02-16": "Vinterferie",
     "2026-02-23": "Vinterferie",
+    "2026-06-23": "Skt. Hans",
     "2026-10-31": "Halloween",
+    "2026-11-08": "Farsdag",
+    "2026-11-11": "Singles' Day",
     "2026-11-27": "Black Friday",
     "2026-11-30": "Cyber Monday"
   },

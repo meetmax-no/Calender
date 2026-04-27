@@ -83,7 +83,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
       {open && (
         <div
           data-testid="emoji-picker-panel"
-          className="absolute z-30 top-full mt-1.5 left-0 bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-xl shadow-2xl p-2"
+          className="absolute z-50 top-full mt-2 left-0 bg-slate-900 border border-white/20 rounded-xl shadow-2xl p-2 w-[180px]"
         >
           <div className="grid grid-cols-3 gap-1">
             {PRESET_EMOJIS.map((e) => (
@@ -92,7 +92,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
                 type="button"
                 data-testid={`emoji-option-${e}`}
                 onClick={() => setEmoji(e)}
-                className={`w-9 h-9 rounded-md text-lg leading-none transition flex items-center justify-center ${
+                className={`w-12 h-10 rounded-md text-xl leading-none transition flex items-center justify-center ${
                   currentEmoji === e
                     ? "bg-blue-500/30 ring-1 ring-blue-400/50"
                     : "hover:bg-white/10"
