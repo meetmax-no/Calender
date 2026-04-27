@@ -19,8 +19,10 @@ interface SettingsPanelProps {
   todos: Todo[];
   backgroundIndex: number;
   backgroundMode: BackgroundMode;
+  solidColor: string;
   onSelectBackground: (index: number) => void;
   onSelectMode: (mode: BackgroundMode) => void;
+  onSelectSolidColor: (hex: string) => void;
   /** Hva NEXT_PUBLIC_CLIENT_CONFIG ba om */
   requestedClient: string;
   /** Hvilken fil som faktisk ble lastet (kan være forskjellig hvis fallback) */
@@ -44,8 +46,10 @@ export function SettingsPanel({
   todos,
   backgroundIndex,
   backgroundMode,
+  solidColor,
   onSelectBackground,
   onSelectMode,
+  onSelectSolidColor,
   requestedClient,
   activeClient,
   configError,
@@ -307,7 +311,7 @@ export function SettingsPanel({
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-4" data-testid="settings-mode-picker">
+          <div className="grid grid-cols-2 gap-2 mb-2" data-testid="settings-mode-picker">
             <ModeOption
               testId="mode-fixed"
               active={backgroundMode === "fixed"}
@@ -332,7 +336,55 @@ export function SettingsPanel({
               label="Tilfeldig"
               description="Nytt ved hver sidelast"
             />
+            <ModeOption
+              testId="mode-solid"
+              active={backgroundMode === "solid"}
+              onClick={() => onSelectMode("solid")}
+              icon={
+                <span
+                  className="h-4 w-4 rounded border border-white/30"
+                  style={{ backgroundColor: solidColor }}
+                />
+              }
+              label="Ensfarget"
+              description="Solid bakgrunnsfarge"
+            />
           </div>
+
+          {backgroundMode === "solid" && (
+            <div
+              data-testid="solid-color-picker"
+              className="mb-4 flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10"
+            >
+              <input
+                data-testid="solid-color-input"
+                type="color"
+                value={solidColor}
+                onChange={(e) => onSelectSolidColor(e.target.value)}
+                className="h-10 w-10 rounded cursor-pointer bg-transparent border border-white/20"
+                aria-label="Velg bakgrunnsfarge"
+              />
+              <input
+                data-testid="solid-color-hex"
+                type="text"
+                value={solidColor}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) onSelectSolidColor(v);
+                }}
+                placeholder="#1A1A1A"
+                className="flex-1 bg-white/5 border border-white/15 rounded-md px-3 py-2 text-sm font-mono text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400/40 uppercase"
+                maxLength={7}
+              />
+              <button
+                onClick={() => onSelectSolidColor("#1A1A1A")}
+                className="text-[11px] text-white/50 hover:text-white/80 transition px-2 py-1 rounded hover:bg-white/10"
+                title="Tilbakestill til standard"
+              >
+                Reset
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-2" data-testid="settings-gallery">
             {backgrounds.map((bg, idx) => {
@@ -525,11 +577,6 @@ export function SettingsPanel({
         </section>
 
         <div className="mt-6 pt-4 border-t border-white/10 text-[11px] text-white/40">
-          Tips: Rediger task-typer, bakgrunner og helligdager i{" "}
-          <code className="bg-white/10 px-1 py-0.5 rounded font-mono">
-            public/clients/{activeClient}.json
-          </code>
-          .
         </div>
       </div>
 

@@ -40,6 +40,8 @@ export interface AppConfig {
    * Brukes kun når demoMode === true.
    */
   demoAnchorWeek?: number;
+  /** Default synlighet for nye oppgaver. Hvis ikke satt: "public". */
+  defaultVisibility?: "public" | "private";
 }
 
 // Statiske UI-strenger (ikke brukerkonfigurerbart)

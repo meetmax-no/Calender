@@ -197,20 +197,30 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      <Image
-        key={backgroundUrl}
-        src={backgroundUrl}
-        alt="Bakgrunn"
-        fill
-        className="object-cover"
-        priority
-      />
-      {/* Overlay — mørkere og litt blur på mobil for å roe ned bakgrunnen */}
-      <div
-        className={`absolute inset-0 ${
-          isMobile ? "bg-black/65 backdrop-blur-[2px]" : "bg-black/30"
-        }`}
-      />
+      {prefs.backgroundMode === "solid" ? (
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: prefs.solidColor || "#1A1A1A" }}
+          data-testid="solid-background"
+        />
+      ) : (
+        <>
+          <Image
+            key={backgroundUrl}
+            src={backgroundUrl}
+            alt="Bakgrunn"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay — mørkere og litt blur på mobil for å roe ned bakgrunnen */}
+          <div
+            className={`absolute inset-0 ${
+              isMobile ? "bg-black/65 backdrop-blur-[2px]" : "bg-black/30"
+            }`}
+          />
+        </>
+      )}
 
       <AppHeader
         status={status}
@@ -339,9 +349,9 @@ export default function Home() {
       {/* Mobil-footer: branding + versjon */}
       <div
         data-testid="mobile-footer"
-        className={`${isMobile ? "" : "hidden"} fixed bottom-0 left-0 right-0 z-10 px-4 py-2 text-center text-[10px] text-white/40 font-medium tracking-wider select-none pointer-events-none bg-gradient-to-t from-black/40 to-transparent`}
+        className={`${isMobile ? "" : "hidden"} fixed bottom-0 left-0 right-0 z-10 px-2 py-2 text-center text-[10px] text-white/40 font-medium select-none pointer-events-none bg-gradient-to-t from-black/40 to-transparent whitespace-nowrap overflow-hidden text-ellipsis`}
       >
-        {branding.name} · By Ko | Do · Consult · {branding.version}
+        {branding.name} · By Ko|Do Consult · {branding.version}
       </div>
 
       {modalMode && (
@@ -364,8 +374,10 @@ export default function Home() {
         todos={todos}
         backgroundIndex={prefs.backgroundIndex}
         backgroundMode={prefs.backgroundMode}
+        solidColor={prefs.solidColor}
         onSelectBackground={(idx) => setPrefs({ backgroundIndex: idx })}
         onSelectMode={(mode) => setPrefs({ backgroundMode: mode })}
+        onSelectSolidColor={(hex) => setPrefs({ solidColor: hex })}
         requestedClient={requestedClient}
         activeClient={activeClient}
         configError={configError}

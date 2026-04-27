@@ -5,16 +5,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-export type BackgroundMode = "fixed" | "random" | "daily";
+export type BackgroundMode = "fixed" | "random" | "daily" | "solid";
 
 export interface UserPrefs {
   backgroundIndex: number; // Indeks i config.backgrounds (brukt når mode=fixed)
   backgroundMode: BackgroundMode;
+  /** Hex-farge brukt når mode=solid. Default mørk. */
+  solidColor: string;
 }
 
 const DEFAULT_PREFS: UserPrefs = {
   backgroundIndex: 0,
   backgroundMode: "fixed",
+  solidColor: "#1A1A1A",
 };
 
 const STORAGE_KEY = "mmtodo.prefs.v1";

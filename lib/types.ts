@@ -14,6 +14,8 @@ export interface Todo {
   estimateHours?: number; // valgfritt timeestimat (f.eks. 0.5, 1, 2, 4)
   /** ID til en annen oppgave som må fullføres før denne kan fullføres */
   waitingFor?: string;
+  /** Synlighet: public (default) eller private. Brukes til personlig filtrering — ikke ekte ACL ennå. */
+  visibility?: "public" | "private";
   date: string; // YYYY-MM-DD
   slot: TimeSlot;
   completed: boolean;

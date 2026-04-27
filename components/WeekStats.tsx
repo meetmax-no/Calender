@@ -10,9 +10,11 @@ interface WeekStatsProps {
   anchorDate: Date;
   todos: Todo[];
   visibleTypes: Set<string>;
+  /** Kompakt enkelt-linje-versjon for mobil. Default false. */
+  compact?: boolean;
 }
 
-export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
+export function WeekStats({ anchorDate, todos, visibleTypes, compact = false }: WeekStatsProps) {
   const { total, done, overdue, blocked, estimateOpen, estimateDone } = useMemo(() => {
     const weekDays = getWeekDays(anchorDate);
     const weekKeys = new Set(weekDays.map((d) => toDateKey(d)));
@@ -55,6 +57,67 @@ export function WeekStats({ anchorDate, todos, visibleTypes }: WeekStatsProps) {
   }, [anchorDate, todos, visibleTypes]);
 
   const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+  // Kompakt mobil-versjon: én slank linje med kun nøkkeltall
+  if (compact) {
+    if (total === 0) {
+      return (
+        <div
+          data-testid="week-stats-compact"
+          className="flex items-center gap-2 px-3 py-1.5 text-[11px] text-white/60"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
+          <span>Ingen oppgaver denne uken</span>
+        </div>
+      );
+    }
+    return (
+      <div
+        data-testid="week-stats-compact"
+        className="flex items-center gap-3 px-3 py-1.5 text-[11px] tabular-nums whitespace-nowrap overflow-x-auto scrollbar-hide"
+      >
+        <span className="text-white/85 font-semibold">
+          {done}/{total} ferdig
+        </span>
+        <span className="text-white/30">·</span>
+        <span
+          className={`font-semibold ${
+            percent === 100
+              ? "text-emerald-300"
+              : percent >= 50
+                ? "text-amber-200"
+                : "text-blue-300"
+          }`}
+        >
+          {percent}%
+        </span>
+        {(estimateOpen > 0 || estimateDone > 0) && (
+          <>
+            <span className="text-white/30">·</span>
+            <span className="text-white/70">{formatHours(estimateOpen)} igjen</span>
+          </>
+        )}
+        {blocked > 0 && (
+          <>
+            <span className="text-white/30">·</span>
+            <span className="text-amber-200 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              {blocked} blokkert
+            </span>
+          </>
+        )}
+        {overdue > 0 && (
+          <>
+            <span className="text-white/30">·</span>
+            <span className="text-rose-200 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+              {overdue} forsinket
+            </span>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

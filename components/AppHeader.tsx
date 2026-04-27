@@ -31,14 +31,16 @@ export function AppHeader({
   const branding = getBranding();
   const isMobile = useIsMobile();
   const renderStatus = () => {
+    const compact = isMobile; // På mobil: kun ikon, ingen tekst
     if (status === "loading" || status === "saving") {
       return (
         <span
           data-testid={`header-status-${status}`}
           className="flex items-center gap-1.5 text-xs text-amber-200"
+          title={status === "saving" ? "Lagrer..." : "Laster..."}
         >
           <Loader2 className="h-3 w-3 animate-spin" />
-          {status === "saving" ? "Lagrer..." : "Laster..."}
+          {!compact && (status === "saving" ? "Lagrer..." : "Laster...")}
         </span>
       );
     }
@@ -47,9 +49,10 @@ export function AppHeader({
         <span
           data-testid="header-status-error"
           className="flex items-center gap-1.5 text-xs text-red-300"
+          title="Frakoblet"
         >
           <CloudOff className="h-3 w-3" />
-          Frakoblet
+          {!compact && "Frakoblet"}
         </span>
       );
     }
@@ -57,9 +60,10 @@ export function AppHeader({
       <span
         data-testid="header-status-online"
         className="flex items-center gap-1.5 text-xs text-emerald-300"
+        title="Online"
       >
         <Cloud className="h-3 w-3" />
-        Online
+        {!compact && "Online"}
       </span>
     );
   };
@@ -93,7 +97,7 @@ export function AppHeader({
               Demo
             </span>
           )}
-          {!isMobile && renderStatus()}
+          {renderStatus()}
         </div>
       </div>
 

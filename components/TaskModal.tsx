@@ -402,16 +402,22 @@ export function TaskModal({
                 className="w-32 bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-400/60 placeholder:text-white/30"
               />
               <span className="text-xs text-white/50">timer</span>
-              <div className="flex gap-1 ml-auto">
-                {["0.5", "1", "2", "4"].map((preset) => (
+              <div className="flex gap-1 ml-auto flex-wrap">
+                {[
+                  { val: "0.25", label: "15min" },
+                  { val: "0.5", label: "30min" },
+                  { val: "1", label: "1t" },
+                  { val: "2", label: "2t" },
+                  { val: "4", label: "4t" },
+                ].map((preset) => (
                   <button
-                    key={preset}
-                    data-testid={`modal-estimate-preset-${preset}`}
+                    key={preset.val}
+                    data-testid={`modal-estimate-preset-${preset.val}`}
                     type="button"
-                    onClick={() => setEstimate(preset)}
+                    onClick={() => setEstimate(preset.val)}
                     className="px-2 py-1 rounded-md text-[10px] font-semibold tabular-nums bg-white/5 hover:bg-white/15 border border-white/10 text-white/70 transition"
                   >
-                    {preset}t
+                    {preset.label}
                   </button>
                 ))}
               </div>

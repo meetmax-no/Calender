@@ -103,10 +103,11 @@ export function TaskCardTooltip({
 }
 
 export function formatHours(hours: number): string {
-  if (hours < 1) {
-    const minutes = Math.round(hours * 60);
-    return `${minutes} min`;
-  }
-  const isWhole = hours % 1 === 0;
-  return `${isWhole ? hours : hours.toFixed(1).replace(".", ",")}t`;
+  if (hours <= 0) return "0 min";
+  const totalMinutes = Math.round(hours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h}t`;
+  return `${h}t ${m}min`;
 }
