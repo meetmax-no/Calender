@@ -4,6 +4,7 @@
   "demoMode": false,
   "demoAnchorWeek": 18,
   "defaultVisibility": "public",
+  "emojiPresets": ["📞", "📧", "📄", "💬", "📅", "✏️", "💡", "🎯", "⚙️"],
   "taskTypes": {
     "TRACK1": {
       "label": "S1-LinkedIn",

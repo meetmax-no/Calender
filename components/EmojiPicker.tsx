@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Smile, X } from "lucide-react";
 
-const PRESET_EMOJIS = ["📞", "📧", "📄", "💬", "📅", "✏️", "💡", "🎯", "⚙️"];
-
 /**
  * Sjekk om første "tegn" i strengen er en emoji (Extended_Pictographic).
  * Returnerer det første grafem-clusteret + resten, eller null/full streng.
@@ -14,20 +12,17 @@ export function splitEmojiPrefix(text: string): {
   rest: string;
 } {
   if (!text) return { emoji: null, rest: "" };
-  // Bruk Intl.Segmenter hvis tilgjengelig (alle moderne browsere)
   if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
     const seg = new Intl.Segmenter(undefined, { granularity: "grapheme" });
     const iter = seg.segment(text)[Symbol.iterator]();
     const first = iter.next().value;
     if (!first) return { emoji: null, rest: text };
     const cluster = first.segment as string;
-    // Sjekk om første cluster matcher en emoji-pattern
     if (/^\p{Extended_Pictographic}/u.test(cluster)) {
       return { emoji: cluster, rest: text.slice(cluster.length).trimStart() };
     }
     return { emoji: null, rest: text };
   }
-  // Fallback for eldre miljø
   const match = text.match(/^(\p{Extended_Pictographic}\uFE0F?)\s*(.*)$/u);
   if (match) return { emoji: match[1], rest: match[2] };
   return { emoji: null, rest: text };
@@ -38,9 +33,11 @@ interface EmojiPickerProps {
   value: string;
   /** Kalles når brukeren velger en emoji eller fjerner */
   onChange: (newValue: string) => void;
+  /** Liste av emojis å vise. Fra config.emojiPresets. */
+  presets: string[];
 }
 
-export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
+export function EmojiPicker({ value, onChange, presets }: EmojiPickerProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const { emoji: currentEmoji, rest } = splitEmojiPrefix(value);
@@ -52,6 +49,9 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
     if (open) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
+
+  // Hvis ingen presets er konfigurert, ikke render picker-knappen
+  if (!presets || presets.length === 0) return null;
 
   const setEmoji = (e: string | null) => {
     const cleanRest = rest;
@@ -86,7 +86,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
           className="absolute z-50 top-full mt-2 left-0 bg-slate-900 border border-white/20 rounded-xl shadow-2xl p-2 w-[180px]"
         >
           <div className="grid grid-cols-3 gap-1">
-            {PRESET_EMOJIS.map((e) => (
+            {presets.map((e) => (
               <button
                 key={e}
                 type="button"

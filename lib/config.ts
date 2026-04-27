@@ -42,6 +42,12 @@ export interface AppConfig {
   demoAnchorWeek?: number;
   /** Default synlighet for nye oppgaver. Hvis ikke satt: "public". */
   defaultVisibility?: "public" | "private";
+  /**
+   * Liste av emoji-presets vist i TaskModal sin emoji-picker.
+   * Rediger dette i klient-config-fila per kunde.
+   * Hvis tom eller udefinert → emoji-knappen skjules.
+   */
+  emojiPresets?: string[];
 }
 
 // Statiske UI-strenger (ikke brukerkonfigurerbart)

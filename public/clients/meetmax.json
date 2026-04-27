@@ -8,6 +8,7 @@
     "demoMode": false,
     "demoAnchorWeek": 18
   },
+  "emojiPresets": ["📞", "📧", "📄", "💬", "📅", "✏️", "💡", "🎯", "⚙️"],
   "taskTypes": {
     "T1": {
       "label": "Annet",

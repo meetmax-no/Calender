@@ -293,7 +293,7 @@ export function TaskModal({
               Tittel
             </label>
             <div className="flex items-stretch gap-2">
-              <EmojiPicker value={title} onChange={setTitle} />
+              <EmojiPicker value={title} onChange={setTitle} presets={config.emojiPresets ?? []} />
               <input
                 data-testid="modal-title-input"
                 type="text"

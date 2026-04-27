@@ -8,6 +8,7 @@
   "demoMode": false,
   "demoAnchorWeek": 18,
   "defaultVisibility": "public",
+  "emojiPresets": ["📞", "📧", "📄", "💬", "📅", "✏️", "💡", "🎯", "⚙️"],
   "taskTypes": {
     "TYPE1": { "label": "Type 1", "color": "#3B82F6", "active": true, "defaultSlot": "10-12" },
     "TYPE2": { "label": "Type 2", "color": "#10B981", "active": true, "defaultSlot": "10-12" },
