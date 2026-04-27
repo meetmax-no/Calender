@@ -33,14 +33,14 @@ function generateId(): string {
   return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// Parser fritekst (komma eller punktum, opp til 1 desimal) til tall.
+// Parser fritekst (komma eller punktum, opp til 2 desimaler) til tall.
 // Returnerer undefined hvis tomt eller ugyldig.
 function parseEstimate(input: string): number | undefined {
   const trimmed = input.trim().replace(",", ".");
   if (trimmed === "") return undefined;
   const num = parseFloat(trimmed);
   if (!Number.isFinite(num) || num <= 0) return undefined;
-  return Math.round(num * 10) / 10; // én desimal
+  return Math.round(num * 100) / 100; // 2 desimaler — 0.25 forblir 0.25
 }
 
 function expandDates(
