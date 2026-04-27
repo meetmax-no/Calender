@@ -48,6 +48,13 @@ export interface AppConfig {
    * Hvis tom eller udefinert → emoji-knappen skjules.
    */
   emojiPresets?: string[];
+  /**
+   * Bytt mobil-bakgrunn til solid farge (default false = bruk bilde).
+   * Gjelder KUN mobil viewport — desktop er alltid bilde.
+   */
+  mobileSolidBackground?: boolean;
+  /** Hex-farge brukt når mobileSolidBackground=true. Default "#1A1A1A". */
+  mobileSolidColor?: string;
 }
 
 // Statiske UI-strenger (ikke brukerkonfigurerbart)

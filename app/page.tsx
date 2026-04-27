@@ -219,10 +219,10 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {prefs.backgroundMode === "solid" && isMobile ? (
+      {isMobile && config.mobileSolidBackground ? (
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: prefs.solidColor || "#1A1A1A" }}
+          style={{ backgroundColor: config.mobileSolidColor || "#1A1A1A" }}
           data-testid="solid-background"
         />
       ) : (
