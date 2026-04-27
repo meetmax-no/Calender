@@ -4,6 +4,8 @@
   "demoMode": false,
   "demoAnchorWeek": 18,
   "defaultVisibility": "public",
+  "mobileSolidBackground": false,
+  "mobileSolidColor": "#1A1A1A",
   "emojiPresets": ["📞", "📧", "📄", "💬", "📅", "✏️", "💡", "🎯", "⚙️"],
   "taskTypes": {
     "TRACK1": {

@@ -8,6 +8,8 @@
   "defaultVisibility": "public",
   "demoMode": true,
   "demoAnchorWeek": 18,
+  "mobileSolidBackground": false,
+  "mobileSolidColor": "#1A1A1A",
   "emojiPresets": ["☎️", "📄", "📩", "💡", "📅", "✏️", "🚀", "🧨", "🐕"],
   "taskTypes": {
     "T1": {
