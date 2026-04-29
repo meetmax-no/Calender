@@ -86,9 +86,9 @@ export function AppHeader({
         </button>
         <div className="flex items-baseline gap-2 min-w-0">
           <h1 className="text-base sm:text-xl font-semibold text-white drop-shadow-lg tracking-tight truncate">
-            <span className="text-white/85">{branding.tagline}</span>
+            <span className="text-white/85">{branding.name}</span>
             <span className="mx-1.5 sm:mx-2 text-white/50">·</span>
-            <span className="font-semibold text-white">{branding.name}</span>
+            <span className="font-semibold text-white">{branding.tagline}</span>
           </h1>
           {demoMode && (
             <span
