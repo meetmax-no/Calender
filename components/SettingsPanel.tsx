@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle, ChevronDown, DatabaseBackup, Upload, Trash2 } from "lucide-react";
+import { X, Check, Shuffle, Calendar as CalendarIcon, Pin, Download, Settings2, AlertCircle, ChevronDown, DatabaseBackup, Upload, Trash2, Building2 } from "lucide-react";
 import type { AppConfig } from "@/lib/config";
 import type { BackgroundMode } from "@/hooks/useUserPrefs";
 import type { Todo } from "@/lib/types";
@@ -63,6 +63,8 @@ export function SettingsPanel({
   const [configOpen, setConfigOpen] = useState<boolean>(
     usingFallback || Boolean(configError),
   );
+  // Klient-seksjon (lukket by default — sales-info som ikke trengs daglig)
+  const [metaOpen, setMetaOpen] = useState<boolean>(false);
 
   // Backup state
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -173,6 +175,22 @@ export function SettingsPanel({
   const activeTaskTypeCount = activeTypes.length;
   const holidayCount = Object.keys(config.holidays ?? {}).length;
   const commercialCount = Object.keys(config.commercialDays ?? {}).length;
+
+  // _meta-info fra klient-config-fila
+  const meta = config._meta;
+  const hasMeta = Boolean(
+    meta && (meta.client || meta.createdAt || meta.createdBy || meta.notes),
+  );
+  const formatMetaDate = (iso?: string): string => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString("nb-NO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
     <div
@@ -292,6 +310,110 @@ export function SettingsPanel({
                 <InfoRow label="Versjon" value={branding.version} />
                 <InfoRow label="Datalager" value="Upstash Redis" />
               </div>
+            </div>
+          )}
+        </section>
+
+        {/* ============== Klient (_meta — collapsible) ============== */}
+        <section data-testid="settings-client-meta" className="mb-6">
+          <button
+            data-testid="settings-meta-toggle"
+            onClick={() => setMetaOpen(!metaOpen)}
+            className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition"
+            aria-expanded={metaOpen}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <Building2 className="h-4 w-4 text-white/70 flex-shrink-0" />
+              <span className="text-sm font-semibold text-white/90">Klient</span>
+              {!metaOpen && hasMeta && meta?.client && (
+                <span
+                  data-testid="settings-meta-summary"
+                  className="text-[10px] text-white/40 font-mono truncate"
+                >
+                  · {meta.client}
+                </span>
+              )}
+              {!metaOpen && !hasMeta && (
+                <span className="text-[10px] text-white/30 italic">
+                  · ingen metadata
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-white/60 transition-transform flex-shrink-0 ${
+                metaOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {metaOpen && (
+            <div className="mt-3" data-testid="settings-meta-body">
+              {!hasMeta ? (
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 text-white/60 text-[11px] leading-relaxed">
+                  <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-white/40" />
+                  <span>
+                    Ingen <code className="bg-black/30 px-1 rounded font-mono">_meta</code>-blokk i{" "}
+                    <code className="bg-black/30 px-1 rounded font-mono">
+                      clients/{activeClient}.json
+                    </code>
+                    . Legg til <code className="bg-black/30 px-1 rounded font-mono">client</code>,{" "}
+                    <code className="bg-black/30 px-1 rounded font-mono">createdAt</code>,{" "}
+                    <code className="bg-black/30 px-1 rounded font-mono">createdBy</code> og{" "}
+                    <code className="bg-black/30 px-1 rounded font-mono">notes</code> for å se
+                    informasjon her.
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <InfoRow
+                      label="Klient"
+                      value={
+                        <span data-testid="meta-client" className="font-medium">
+                          {meta?.client || "—"}
+                        </span>
+                      }
+                    />
+                    <InfoRow
+                      label="Opprettet av"
+                      value={
+                        <span data-testid="meta-created-by">
+                          {meta?.createdBy || "—"}
+                        </span>
+                      }
+                    />
+                    <InfoRow
+                      label="Opprettet"
+                      value={
+                        <span data-testid="meta-created-at" className="tabular-nums">
+                          {formatMetaDate(meta?.createdAt)}
+                        </span>
+                      }
+                    />
+                    <InfoRow
+                      label="Konfig-fil"
+                      value={
+                        <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono">
+                          {activeClient}.json
+                        </code>
+                      }
+                    />
+                  </div>
+                  {meta?.notes && (
+                    <div
+                      data-testid="meta-notes"
+                      className="px-2.5 py-2 rounded-md bg-white/5 border border-white/10"
+                    >
+                      <div className="text-white/50 uppercase tracking-wider text-[10px] font-semibold mb-1">
+                        Notater
+                      </div>
+                      <div className="text-white/85 text-[11px] leading-relaxed whitespace-pre-wrap break-words">
+                        {meta.notes}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </section>

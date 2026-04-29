@@ -20,7 +20,23 @@ export interface BackgroundImage {
   name: string;
 }
 
+export interface ClientMeta {
+  /** Klientens visningsnavn (firma) — f.eks. "Me & Max AS" */
+  client?: string;
+  /** ISO-dato (YYYY-MM-DD) for når config-fila ble opprettet */
+  createdAt?: string;
+  /** Hvem som opprettet config-fila — f.eks. "Ko|Do Consult" */
+  createdBy?: string;
+  /** Fri-tekst notat: kontakt-info, spesielle behov, bestillingsdato osv. */
+  notes?: string;
+}
+
 export interface AppConfig {
+  /**
+   * Metadata om klienten (kontakt, opprettelsesdato, m.m.).
+   * Vises read-only i Settings → Klient-seksjonen.
+   */
+  _meta?: ClientMeta;
   version: string;
   updatedAt: string;
   taskTypes: Record<string, TaskTypeConfig>;
