@@ -6,9 +6,9 @@
     "notes": "Kontakt: firma@meetmax.no | Bestilt: 2026-04-24"
   },
   "defaultVisibility": "public",
-  "demoMode": true,
+  "demoMode": false,
   "demoAnchorWeek": 18,
-  "mobileSolidBackground": false,
+  "mobileSolidBackground": true,
   "mobileSolidColor": "#1A1A1A",
   "emojiPresets": ["☎️", "📄", "📩", "💡", "📅", "✏️", "🚀", "🧨", "🐕"],
   "taskTypes": {
