@@ -194,6 +194,31 @@ Vercel vil **automatisk re-deploye** og injisere disse 5 vars:
 
 ---
 
+## 🔁 Fase 3.5 — Verifiser at en deploy er kjørt **etter** env-vars ble satt (1 min)
+
+> ⚠️ **Den vanligste fellen i hele oppskriften.** Hvis du har lagt inn env-vars manuelt (eller endret en eksisterende), gjelder de **ikke** for kjørende kode før det er trigget en ny deploy. Resultat: `/api/todos` returnerer **500** selv om alle nøklene står korrekt i dashbordet.
+
+### Sjekk i Vercel
+1. Gå til prosjektet → **Deployments**
+2. Verifiser at den øverste deploy-en har tidsstempel **etter** at env-vars ble lagt til
+3. Hvis siste deploy er **før** env-endringene: trigg en redeploy (se nedenfor)
+
+### Slik trigger du en manuell redeploy
+1. Vercel → prosjekt → **Deployments**
+2. På siste deploy: klikk **3-prikks-menyen → Redeploy**
+3. **Use existing Build Cache:** *Av* (sikrest første gang)
+4. Klikk **Redeploy** → vent 1–2 min
+
+### Hurtig-test at det virker
+Åpne i nettleser:
+```
+https://planner-<kallenavn>.vercel.app/api/todos
+```
+- ✅ Skal returnere `{"ToDoEvents":[]}` (ny instans uten data)
+- ❌ Hvis du får `{"error":"KV_REST_API_URL eller KV_REST_API_TOKEN mangler i miljøet."}` → env-vars er satt for feil environment, eller redeploy mangler fortsatt
+
+---
+
 ## ✅ Fase 4 — Verifisering (5 min)
 
 Åpne `https://planner-<kallenavn>.vercel.app` og sjekk:
@@ -319,6 +344,7 @@ Ko|Do Consult
 [ ] Fase 1: clients/<navn>.json laget + pushet
 [ ] Fase 2: Upstash Redis opprettet
 [ ] Fase 3: Vercel-prosjekt + 3 env-vars + KV-tilkobling
+[ ] Fase 3.5: Verifisert at deploy er kjørt ETTER env-vars (ellers redeploy)
 [ ] Fase 4: Smoke-test i prod
 [ ] Fase 5: (valgfritt) custom domene
 [ ] Fase 6: Velkomst-e-post sendt
@@ -400,14 +426,29 @@ Når du skal sette opp en **demo-instans** for å vise potensielle kunder:
 | Feil | Årsak | Fix |
 |---|---|---|
 | `pnpm-lock.yaml is not up to date` | Lockfile ikke oppdatert etter dependency-endring | `pnpm install --lockfile-only` + commit |
-| Header viser "KoDo Planner" hos Acme | `NEXT_PUBLIC_BRAND_NAME` ikke satt eller deploy ikke gjort | Sett env, redeploy |
+| Header viser "KoDo Planner" hos Acme | `NEXT_PUBLIC_BRAND_NAME` ikke satt eller deploy ikke gjort | Sett env, **redeploy** (Deployments → 3-prikker → Redeploy) |
 | Innstillinger viser "Avvik: clients/X.json mangler" | Filen ikke pushet eller env feil | Sjekk at filen finnes på GitHub + at env matcher filnavn |
+| **`/api/todos` → 500 etter at du nettopp har satt env-vars manuelt** | **Env-vars trer ikke i kraft før neste deploy** | **Vercel → Deployments → 3-prikker → Redeploy (slå AV "Use existing Build Cache")** |
 | Oppgaver vises ikke / 500-feil i nettleseren | KV-store ikke koblet | Storage-fanen → Connect Store → redeploy |
 | `Cannot find module @upstash/redis` | Build cache fra før Fase A | Vercel → Deployments → Redeploy med "Clear cache" |
 
 ---
 
-_Versjon: v4.5.3 · Sist oppdatert: 26. apr 2026_
+## 🔁 Når må du redeploye?
+
+Vercel injekterer env-vars kun ved **build-tid**. Endringer du gjør i dashbordet etter siste deploy gjelder IKKE for kjørende kode før neste deploy. Husk redeploy etter:
+
+- ✅ Du la til/endret en **env-variabel** manuelt (`KV_REST_API_*`, `NEXT_PUBLIC_*`)
+- ✅ Du koblet til en **KV/Storage-store** uten at Vercel auto-deploy'et
+- ✅ Du **byttet environment** for en variabel (f.eks. fra "Preview only" til "Production")
+- ❌ Ikke nødvendig hvis du bare endret en **fil i public/clients/** og pushet — git push trigger auto-deploy
+
+**Slik gjør du det raskt:**
+> Vercel → Project → Deployments → siste deploy → 3-prikker → **Redeploy** → "Use existing Build Cache" **AV** → Redeploy
+
+---
+
+_Versjon: v4.6.0 · Sist oppdatert: 29. apr 2026_
 
 ---
 
