@@ -11,6 +11,11 @@ import { Clock, Lock } from "lucide-react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface TaskCardTooltipProps {
+  /** Valgfri tittel som vises øverst i tooltip — brukes når selve kortet
+   *  ikke viser tittel (f.eks. MonthView med absolutt tid). */
+  title?: string;
+  /** Valgfritt klokkeslett — vises sammen med tittel/beskrivelse hvis satt. */
+  time?: string;
   description?: string;
   estimateHours?: number;
   /** Hvis satt: viser "Venter på X" som blokkering-info */
@@ -23,10 +28,11 @@ interface TaskCardTooltipProps {
 /**
  * Wrapper rundt et oppgave-kort som viser en hover-tooltip
  * med beskrivelse, estimat og evt. blokkerings-info.
- * Vises hvis MINST ÉN av disse finnes: beskrivelse, blockedBy.
  * I tillegg vises et lite hint på desktop om at høyreklikk = utsette.
  */
 export function TaskCardTooltip({
+  title,
+  time,
   description,
   estimateHours,
   blockedBy,
@@ -34,13 +40,14 @@ export function TaskCardTooltip({
   children,
 }: TaskCardTooltipProps) {
   const isMobile = useIsMobile();
+  const hasTitle = Boolean(title && title.trim() !== "");
   const hasDescription = description && description.trim() !== "";
   const hasBlocked = Boolean(blockedBy);
   // Hintet vises kun på desktop (høyreklikk er meningsløst på touch)
   const showSnoozeHint = !isMobile;
 
   // Vis ingen tooltip hvis det ikke er noe å fortelle (og ingen hint)
-  if (!hasDescription && !hasBlocked && !showSnoozeHint) {
+  if (!hasTitle && !hasDescription && !hasBlocked && !showSnoozeHint) {
     return <>{children}</>;
   }
 
@@ -58,8 +65,30 @@ export function TaskCardTooltip({
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
+          {(hasTitle || time) && (
+            <div
+              data-testid="task-tooltip-title"
+              className="flex items-center gap-2 mb-1.5"
+            >
+              {time && (
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-blue-200 tabular-nums flex-shrink-0">
+                  <Clock className="h-3 w-3" strokeWidth={2.5} />
+                  {time}
+                </span>
+              )}
+              {hasTitle && (
+                <span className="text-[12px] font-semibold leading-snug text-white truncate">
+                  {title}
+                </span>
+              )}
+            </div>
+          )}
           {hasDescription && (
-            <p className="text-[12px] leading-snug whitespace-pre-wrap break-words text-white/95">
+            <p
+              className={`text-[12px] leading-snug whitespace-pre-wrap break-words text-white/95 ${
+                hasTitle || time ? "pt-1.5 border-t border-white/15" : ""
+              }`}
+            >
               {description}
             </p>
           )}
@@ -73,7 +102,7 @@ export function TaskCardTooltip({
               }}
               disabled={!onBlockedClick}
               className={`flex items-center gap-1.5 text-[11px] text-amber-200 w-full text-left transition ${
-                hasDescription ? "mt-1.5 pt-1.5 border-t border-white/15" : ""
+                hasTitle || time || hasDescription ? "mt-1.5 pt-1.5 border-t border-white/15" : ""
               } ${onBlockedClick ? "hover:text-amber-100 cursor-pointer" : ""}`}
             >
               <Lock className="h-3 w-3 flex-shrink-0" />
@@ -92,7 +121,7 @@ export function TaskCardTooltip({
           {estimateHours !== undefined && (
             <div
               className={`flex items-center gap-1.5 text-[10px] text-white/70 font-semibold uppercase tracking-wider ${
-                hasDescription || hasBlocked
+                hasTitle || time || hasDescription || hasBlocked
                   ? "mt-1.5 pt-1.5 border-t border-white/15"
                   : ""
               }`}
@@ -105,7 +134,7 @@ export function TaskCardTooltip({
             <div
               data-testid="task-tooltip-snooze-hint"
               className={`flex items-center gap-1 text-[10px] text-white/40 ${
-                hasDescription || hasBlocked || estimateHours !== undefined
+                hasTitle || time || hasDescription || hasBlocked || estimateHours !== undefined
                   ? "mt-1.5 pt-1.5 border-t border-white/10"
                   : ""
               }`}

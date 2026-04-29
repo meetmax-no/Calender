@@ -10,6 +10,7 @@ import { addDays, addMonths } from "date-fns";
 import { DependencyPicker } from "./DependencyPicker";
 import { getDependency, isBlocked, getDependencyCandidates } from "@/lib/deps";
 import { EmojiPicker } from "./EmojiPicker";
+import { slotForTime } from "@/lib/slots";
 
 export type ModalMode =
   | { kind: "create"; initialDate?: string; initialSlot?: TimeSlot; initialType?: string }
@@ -82,6 +83,7 @@ export function TaskModal({
           type: mode.todo.type,
           date: mode.todo.date,
           slot: mode.todo.slot,
+          time: mode.todo.time ?? "",
           description: mode.todo.description ?? "",
           estimate: mode.todo.estimateHours?.toString() ?? "",
           waitingFor: mode.todo.waitingFor,
@@ -97,6 +99,7 @@ export function TaskModal({
             (activeTypes.find((t) => t.key === (mode.initialType ?? activeTypes[0]?.key))
               ?.defaultSlot as TimeSlot) ??
             ("10-12" as TimeSlot),
+          time: "",
           description: "",
           estimate: "",
           waitingFor: undefined as string | undefined,
@@ -108,6 +111,7 @@ export function TaskModal({
   const [type, setType] = useState(initialValues.type);
   const [date, setDate] = useState(initialValues.date);
   const [slot, setSlot] = useState<TimeSlot>(initialValues.slot as TimeSlot);
+  const [time, setTime] = useState(initialValues.time);
   const [description, setDescription] = useState(initialValues.description);
   const [estimate, setEstimate] = useState(initialValues.estimate);
   const [waitingFor, setWaitingFor] = useState<string | undefined>(initialValues.waitingFor);
@@ -165,6 +169,7 @@ export function TaskModal({
         type,
         date: d,
         slot,
+        time: time || undefined,
         description: description.trim() || undefined,
         estimateHours: parsedEstimate,
         waitingFor: waitingFor || undefined,
@@ -192,6 +197,7 @@ export function TaskModal({
             type,
             date,
             slot,
+            time: time || undefined,
             description: description.trim() || undefined,
             estimateHours: parsedEstimate,
             waitingFor: waitingFor || undefined,
@@ -205,6 +211,7 @@ export function TaskModal({
             type,
             date,
             slot,
+            time: time || undefined,
             description: description.trim() || undefined,
             estimateHours: parsedEstimate,
             waitingFor: waitingFor || undefined,
@@ -357,27 +364,51 @@ export function TaskModal({
             </div>
             <div>
               <label className="block text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wider">
-                Tidslukke
+                Klokkeslett <span className="text-white/40 normal-case">(valgfritt)</span>
               </label>
-              <div className="grid grid-cols-4 gap-1" data-testid="modal-slot-picker">
-                {TIME_SLOTS.map((s) => {
-                  const isActive = slot === s;
-                  return (
-                    <button
-                      key={s}
-                      data-testid={`modal-slot-${s}`}
-                      onClick={() => setSlot(s)}
-                      className={`text-[10px] font-medium py-2 rounded-md transition border ${
-                        isActive
-                          ? "bg-blue-500 border-blue-400 text-white"
-                          : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  );
-                })}
-              </div>
+              <input
+                data-testid="modal-time-input"
+                type="time"
+                value={time}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setTime(v);
+                  // Auto-velg riktig slot basert på klokkeslett
+                  const auto = slotForTime(v);
+                  if (auto) setSlot(auto);
+                }}
+                className="w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/60 [color-scheme:dark]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wider">
+              Tidslukke
+              {time && (
+                <span className="ml-2 text-[10px] text-blue-300/70 normal-case font-normal">
+                  · auto-valgt fra klokkeslett
+                </span>
+              )}
+            </label>
+            <div className="grid grid-cols-4 gap-1" data-testid="modal-slot-picker">
+              {TIME_SLOTS.map((s) => {
+                const isActive = slot === s;
+                return (
+                  <button
+                    key={s}
+                    data-testid={`modal-slot-${s}`}
+                    onClick={() => setSlot(s)}
+                    className={`text-[10px] font-medium py-2 rounded-md transition border ${
+                      isActive
+                        ? "bg-blue-500 border-blue-400 text-white"
+                        : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Check, Lock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Lock, Clock } from "lucide-react";
 import type { TimeSlot } from "@/lib/config";
 import type { Todo } from "@/lib/types";
 import type { AppConfig } from "@/lib/config";
@@ -20,6 +20,7 @@ import { WeekStats } from "./WeekStats";
 import { isBlocked, getDependency } from "@/lib/deps";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { timeToMinutes } from "@/lib/slots";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -77,6 +78,15 @@ export function MonthView({
     const list = todosByDate.get(t.date) ?? [];
     list.push(t);
     todosByDate.set(t.date, list);
+  }
+  // Sorter innen hver dag: først på slot-rekkefølge, deretter på klokkeslett
+  const slotOrder: Record<string, number> = { "08-10": 0, "10-12": 1, "12-14": 2, "14-16": 3 };
+  for (const list of todosByDate.values()) {
+    list.sort((a, b) => {
+      const slotDiff = (slotOrder[a.slot] ?? 99) - (slotOrder[b.slot] ?? 99);
+      if (slotDiff !== 0) return slotDiff;
+      return timeToMinutes(a.time) - timeToMinutes(b.time);
+    });
   }
 
   const goToToday = () => onAnchorChange(new Date());
@@ -337,6 +347,8 @@ function MonthRow({
                 return (
                   <TaskCardTooltip
                     key={t.id}
+                    title={t.time ? t.title : undefined}
+                    time={t.time}
                     description={t.description}
                     estimateHours={t.estimateHours}
                     blockedBy={dep?.title}
@@ -400,12 +412,19 @@ function MonthRow({
                           e.stopPropagation();
                           onTodoClick(t);
                         }}
-                        className={`flex-1 min-w-0 truncate text-left leading-tight ${
+                        className={`flex-1 min-w-0 truncate text-left leading-tight flex items-center gap-1 ${
                           t.completed ? "line-through" : ""
                         }`}
-                        title={`${t.title} · ${t.slot}`}
+                        title={`${t.title}${t.time ? ` · ${t.time}` : ""} · ${t.slot}`}
                       >
-                        {t.title}
+                        {t.time ? (
+                          <>
+                            <Clock className="h-2.5 w-2.5 flex-shrink-0 text-white/85" strokeWidth={2.5} />
+                            <span className="tabular-nums font-semibold">{t.time}</span>
+                          </>
+                        ) : (
+                          <span className="truncate">{t.title}</span>
+                        )}
                       </button>
                       <VisibilityDot visibility={t.visibility} className="flex-shrink-0 ring-1 ring-black/20" />
                       {t.estimateHours !== undefined && (

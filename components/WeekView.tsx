@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Check, Lock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Lock, Clock } from "lucide-react";
 import type { TimeSlot } from "@/lib/config";
 import { TIME_SLOTS } from "@/lib/types";
 import {
@@ -22,6 +22,7 @@ import { WeekStats } from "./WeekStats";
 import { isBlocked, getDependency } from "@/lib/deps";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { timeToMinutes } from "@/lib/slots";
 
 type ViewMode = "week" | "month" | "list";
 
@@ -80,7 +81,9 @@ export function WeekView({
 
   const getTodosForCell = (date: Date, slot: TimeSlot): Todo[] => {
     const key = toDateKey(date);
-    return visibleTodos.filter((t) => t.date === key && t.slot === slot);
+    return visibleTodos
+      .filter((t) => t.date === key && t.slot === slot)
+      .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
   };
 
   const getDayMarker = (date: Date) => {
@@ -325,11 +328,12 @@ function SlotRow({
                         e.stopPropagation();
                         onTodoSnoozeRequest(t.id, e.clientX, e.clientY);
                       }}
-                      className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition cursor-grab active:cursor-grabbing ${
+                      className={`pointer-events-auto rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition cursor-grab active:cursor-grabbing ${
                         t.completed ? "opacity-50 cursor-default" : ""
                       } ${dnd.state.activeId === t.id ? "opacity-30 scale-95" : ""}`}
                       style={{ backgroundColor: typeConfig.color, color: "white" }}
                     >
+                      <div className="flex items-center gap-1.5">
                       <button
                         data-testid={`todo-toggle-${t.id}`}
                         onClick={(e) => {
@@ -385,6 +389,16 @@ function SlotRow({
                         >
                           {formatHours(t.estimateHours)}
                         </span>
+                      )}
+                      </div>
+                      {t.time && (
+                        <div
+                          data-testid={`todo-time-${t.id}`}
+                          className="flex items-center gap-1 pl-5 mt-0.5 text-[11px] text-white/85 tabular-nums leading-tight"
+                        >
+                          <Clock className="h-3 w-3 flex-shrink-0 text-white/70" strokeWidth={2.5} />
+                          <span>{t.time}</span>
+                        </div>
                       )}
                     </div>
                   </TaskCardTooltip>

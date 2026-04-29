@@ -398,7 +398,7 @@ export function ListView({
                           {format(dateObj, "EEE", { locale: nb })
                             .replace(/\.$/, "")
                             .toLowerCase()}{" "}
-                          · {t.slot}
+                          · {t.time ? <span className="text-blue-300/90 font-semibold">{t.time}</span> : t.slot}
                         </div>
                       </td>
 
@@ -654,7 +654,7 @@ function MobileCardList({
                   </span>
                 )}
                 <span className="text-white/60 tabular-nums">
-                  {dateStr} · {t.slot}
+                  {dateStr} · {t.time ? <span className="text-blue-300/90 font-semibold">{t.time}</span> : t.slot}
                 </span>
                 {t.estimateHours !== undefined && (
                   <span
