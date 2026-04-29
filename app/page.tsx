@@ -354,7 +354,7 @@ export default function Home() {
               data-testid="error-banner"
               className="mx-4 mb-4 p-3 rounded-lg bg-red-500/20 border border-red-400/30 text-sm text-red-100"
             >
-              <strong>Feil fra JSONBin:</strong> {error}
+              <strong>Feil fra Upstash:</strong> {error}
             </div>
           )}
         </div>

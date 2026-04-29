@@ -17,14 +17,14 @@ export function LoadingToast({ status, configStatus }: LoadingToastProps) {
   if (!visible) return null;
 
   let title = "Laster...";
-  let subtitle = "Henter data fra JSONBin";
+  let subtitle = "Henter data fra Upstash";
   let accent = "border-white/20 bg-slate-900/85";
   let Icon = Loader2;
   let iconClass = "animate-spin text-white/80";
 
   if (isSaving) {
     title = "Lagrer...";
-    subtitle = "Skriver til JSONBin";
+    subtitle = "Skriver til Upstash";
     accent = "border-amber-400/30 bg-slate-900/85";
     iconClass = "animate-spin text-amber-300";
   } else if (isError) {
