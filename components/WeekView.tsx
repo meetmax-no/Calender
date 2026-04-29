@@ -40,6 +40,7 @@ interface WeekViewProps {
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
   onTodoMove: (id: string, date: string, slot: TimeSlot | undefined) => void;
+  onTodoSnoozeRequest?: (id: string, x: number, y: number) => void;
 }
 
 export function WeekView({
@@ -57,6 +58,7 @@ export function WeekView({
   onTodoClick,
   onTodoToggle,
   onTodoMove,
+  onTodoSnoozeRequest,
 }: WeekViewProps) {
   const weekDays = getWeekDays(anchorDate);
   const weekNum = getISOWeek(weekDays[0]);
@@ -227,6 +229,7 @@ export function WeekView({
               onCellClick={onCellClick}
               onTodoClick={onTodoClick}
               onTodoToggle={onTodoToggle}
+              onTodoSnoozeRequest={onTodoSnoozeRequest}
               dnd={dnd}
             />
           ))}
@@ -246,6 +249,7 @@ interface SlotRowProps {
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
+  onTodoSnoozeRequest?: (id: string, x: number, y: number) => void;
   dnd: ReturnType<typeof useDragAndDrop>;
 }
 
@@ -259,6 +263,7 @@ function SlotRow({
   onCellClick,
   onTodoClick,
   onTodoToggle,
+  onTodoSnoozeRequest,
   dnd,
 }: SlotRowProps) {
   return (
@@ -314,6 +319,12 @@ function SlotRow({
                       draggable={!t.completed}
                       onDragStart={dnd.startDrag(t.id)}
                       onDragEnd={dnd.endDrag}
+                      onContextMenu={(e) => {
+                        if (!onTodoSnoozeRequest || t.completed) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onTodoSnoozeRequest(t.id, e.clientX, e.clientY);
+                      }}
                       className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium shadow-sm group/todo transition cursor-grab active:cursor-grabbing ${
                         t.completed ? "opacity-50 cursor-default" : ""
                       } ${dnd.state.activeId === t.id ? "opacity-30 scale-95" : ""}`}

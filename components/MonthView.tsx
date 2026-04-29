@@ -38,6 +38,7 @@ interface MonthViewProps {
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
   onTodoMove: (id: string, date: string, slot: TimeSlot | undefined) => void;
+  onTodoSnoozeRequest?: (id: string, x: number, y: number) => void;
 }
 
 const WEEKDAY_HEADERS = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
@@ -58,6 +59,7 @@ export function MonthView({
   onTodoClick,
   onTodoToggle,
   onTodoMove,
+  onTodoSnoozeRequest,
 }: MonthViewProps) {
   const days = getMonthViewGrid(anchorDate);
   const monthLabel = formatMonthTitle(anchorDate);
@@ -204,6 +206,7 @@ export function MonthView({
                   onCellClick={onCellClick}
                   onTodoClick={onTodoClick}
                   onTodoToggle={onTodoToggle}
+                  onTodoSnoozeRequest={onTodoSnoozeRequest}
                   dnd={dnd}
                 />
               );
@@ -227,6 +230,7 @@ interface MonthRowProps {
   onCellClick: (date: Date, slot: TimeSlot) => void;
   onTodoClick: (todo: Todo) => void;
   onTodoToggle: (id: string) => void;
+  onTodoSnoozeRequest?: (id: string, x: number, y: number) => void;
   dnd: ReturnType<typeof useDragAndDrop>;
 }
 
@@ -242,6 +246,7 @@ function MonthRow({
   onCellClick,
   onTodoClick,
   onTodoToggle,
+  onTodoSnoozeRequest,
   dnd,
 }: MonthRowProps) {
   return (
@@ -342,6 +347,12 @@ function MonthRow({
                       draggable={!t.completed}
                       onDragStart={dnd.startDrag(t.id)}
                       onDragEnd={dnd.endDrag}
+                      onContextMenu={(e) => {
+                        if (!onTodoSnoozeRequest || t.completed) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onTodoSnoozeRequest(t.id, e.clientX, e.clientY);
+                      }}
                       className={`pointer-events-auto flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm group/todo transition cursor-grab active:cursor-grabbing ${
                         t.completed ? "opacity-50 cursor-default" : ""
                       } ${!inCurrentMonth ? "opacity-60" : ""} ${

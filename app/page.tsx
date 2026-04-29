@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { Plus } from "lucide-react";
 import { SearchOverlayMobile } from "@/components/Search";
 import { getMondayOfISOWeek } from "@/lib/date";
+import { SnoozeMenu } from "@/components/SnoozeMenu";
 
 const DEFAULT_BG =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop";
@@ -45,6 +46,11 @@ export default function Home() {
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [snoozeMenu, setSnoozeMenu] = useState<{
+    todoId: string;
+    x: number;
+    y: number;
+  } | null>(null);
   const hasInitializedFilter = useRef(false);
   const hasInitializedDemoAnchor = useRef(false);
 
@@ -178,6 +184,28 @@ export default function Home() {
     await updateTodo(id, { date, slot: nextSlot });
   };
 
+  // Åpne snooze-meny ved høyreklikk eller long-press på et task-kort
+  const handleTodoSnoozeRequest = (todoId: string, x: number, y: number) => {
+    setSnoozeMenu({ todoId, x, y });
+  };
+
+  // Utfør snooze: oppdater todo med ny dato
+  const handleSnoozeSelect = async (newDate: string) => {
+    if (!snoozeMenu) return;
+    const target = todos.find((t) => t.id === snoozeMenu.todoId);
+    setSnoozeMenu(null);
+    if (!target) return;
+    if (target.date === newDate) return; // Ingen endring
+    await updateTodo(snoozeMenu.todoId, { date: newDate });
+    toast.success(
+      `Utsatt til ${new Date(newDate).toLocaleDateString("nb-NO", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })}`,
+    );
+  };
+
   // Lagre mange todos atomisk (for gjentakende oppgaver)
   const handleSaveRecurring = async (newTodos: Todo[]) => {
     await saveAll([...todos, ...newTodos]);
@@ -309,6 +337,7 @@ export default function Home() {
               onTodoClick={handleTodoClick}
               onTodoToggle={handleTodoToggle}
               onTodoMove={handleTodoMove}
+              onTodoSnoozeRequest={handleTodoSnoozeRequest}
             />
           )}
           {viewMode === "month" && (
@@ -327,6 +356,7 @@ export default function Home() {
               onTodoClick={handleTodoClick}
               onTodoToggle={handleTodoToggle}
               onTodoMove={handleTodoMove}
+              onTodoSnoozeRequest={handleTodoSnoozeRequest}
             />
           )}
           {viewMode === "list" && (
@@ -431,6 +461,15 @@ export default function Home() {
       />
 
       <LoadingToast status={status} configStatus={configStatus} />
+
+      {snoozeMenu && (
+        <SnoozeMenu
+          x={snoozeMenu.x}
+          y={snoozeMenu.y}
+          onSelect={handleSnoozeSelect}
+          onClose={() => setSnoozeMenu(null)}
+        />
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Clock, Lock } from "lucide-react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface TaskCardTooltipProps {
   description?: string;
@@ -23,6 +24,7 @@ interface TaskCardTooltipProps {
  * Wrapper rundt et oppgave-kort som viser en hover-tooltip
  * med beskrivelse, estimat og evt. blokkerings-info.
  * Vises hvis MINST ÉN av disse finnes: beskrivelse, blockedBy.
+ * I tillegg vises et lite hint på desktop om at høyreklikk = utsette.
  */
 export function TaskCardTooltip({
   description,
@@ -31,11 +33,14 @@ export function TaskCardTooltip({
   onBlockedClick,
   children,
 }: TaskCardTooltipProps) {
+  const isMobile = useIsMobile();
   const hasDescription = description && description.trim() !== "";
   const hasBlocked = Boolean(blockedBy);
+  // Hintet vises kun på desktop (høyreklikk er meningsløst på touch)
+  const showSnoozeHint = !isMobile;
 
-  // Vis ingen tooltip hvis det ikke er noe å fortelle
-  if (!hasDescription && !hasBlocked) {
+  // Vis ingen tooltip hvis det ikke er noe å fortelle (og ingen hint)
+  if (!hasDescription && !hasBlocked && !showSnoozeHint) {
     return <>{children}</>;
   }
 
@@ -94,6 +99,19 @@ export function TaskCardTooltip({
             >
               <Clock className="h-3 w-3" />
               <span className="tabular-nums">{formatHours(estimateHours)}</span>
+            </div>
+          )}
+          {showSnoozeHint && (
+            <div
+              data-testid="task-tooltip-snooze-hint"
+              className={`flex items-center gap-1 text-[10px] text-white/40 ${
+                hasDescription || hasBlocked || estimateHours !== undefined
+                  ? "mt-1.5 pt-1.5 border-t border-white/10"
+                  : ""
+              }`}
+            >
+              <span aria-hidden>💡</span>
+              <span>Høyreklikk for å utsette</span>
             </div>
           )}
         </TooltipContent>
