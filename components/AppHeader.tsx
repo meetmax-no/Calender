@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings, Menu, Search as SearchIcon, FlaskConical } from "lucide-react";
+import { Settings, Menu, Search as SearchIcon, FlaskConical, RefreshCw } from "lucide-react";
 import type { SyncStatus } from "@/hooks/useTodos";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { getBranding } from "@/lib/branding";
@@ -130,6 +130,17 @@ export function AppHeader({
             <SearchIcon className="h-5 w-5" />
           </button>
         )}
+        <button
+          data-testid="header-refresh-btn"
+          onClick={() => {
+            if (typeof window !== "undefined") window.location.reload();
+          }}
+          className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-md transition"
+          aria-label="Oppdater (hent siste data)"
+          title="Oppdater siden — henter siste data fra DB"
+        >
+          <RefreshCw className="h-5 w-5" />
+        </button>
         <button
           data-testid="header-settings-btn"
           onClick={onSettingsClick}
