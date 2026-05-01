@@ -10,7 +10,17 @@
   "demoAnchorWeek": 18,
   "mobileSolidBackground": true,
   "mobileSolidColor": "#1A1A1A",
-  "emojiPresets": ["☎️", "📄", "📩", "💡", "📅", "✏️", "🚀", "🧨", "🐕"],
+  "emojiPresets": [
+    "☎️",
+    "📄",
+    "📩",
+    "💡",
+    "📅",
+    "✏️",
+    "🚀",
+    "🩺",
+    "🐕"
+  ],
   "taskTypes": {
     "T1": {
       "label": "Annet",
