@@ -1,0 +1,185 @@
+{
+  "_meta": {
+    "client": "Me & Max AS",
+    "createdAt": "2026-04-27",
+    "createdBy": "Ko|Do Consult",
+    "notes": "Kontakt: firma@meetmax.no | Bestilt: 2026-04-24"
+  },
+  "defaultVisibility": "public",
+  "demoMode": false,
+  "demoAnchorWeek": 18,
+  "mobileSolidBackground": true,
+  "mobileSolidColor": "#1A1A1A",
+  "emojiPresets": ["☎️", "📄", "📩", "💡", "📅", "✏️", "🚀", "🧨", "🐕"],
+  "taskTypes": {
+    "T1": {
+      "label": "Annet",
+      "icon": "Sparkles",
+      "color": "#A855F7",
+      "defaultSlot": "08-10",
+      "active": true
+    },
+    "T2": {
+      "label": "Drift & Økonomi",
+      "icon": "Globe",
+      "color": "#FF0000",
+      "defaultSlot": "08-10",
+      "active": true
+    },
+    "T3": {
+      "label": "Forretningsutvikling",
+      "icon": "Sparkles",
+      "color": "#FFD700",
+      "defaultSlot": "10-12",
+      "active": true
+    },
+    "T4": {
+      "label": "Kunder",
+      "icon": "Users",
+      "color": "#06B6D4",
+      "defaultSlot": "10-12",
+      "active": true
+    },
+    "T5": {
+      "label": "Marketing",
+      "icon": "Calendar",
+      "color": "#EC4899",
+      "defaultSlot": "12-14",
+      "active": true
+    },
+    "T6": {
+      "label": "Salg",
+      "icon": "Activity",
+      "color": "#3B82F6",
+      "defaultSlot": "12-14",
+      "active": true
+    },
+    "T7": {
+      "label": "Utvikling",
+      "icon": "File",
+      "color": "#22C55E",
+      "defaultSlot": "14-16",
+      "active": true
+    }
+  },
+  "palette": [
+    {
+      "name": "Rosa",
+      "hex": "#EC4899"
+    },
+    {
+      "name": "Rose",
+      "hex": "#F43F5E"
+    },
+    {
+      "name": "Oransje",
+      "hex": "#F97316"
+    },
+    {
+      "name": "Gul",
+      "hex": "#F59E0B"
+    },
+    {
+      "name": "Emerald",
+      "hex": "#10B981"
+    },
+    {
+      "name": "Teal",
+      "hex": "#14B8A6"
+    },
+    {
+      "name": "Sky",
+      "hex": "#0EA5E9"
+    },
+    {
+      "name": "Blå",
+      "hex": "#3B82F6"
+    },
+    {
+      "name": "Indigo",
+      "hex": "#6366F1"
+    },
+    {
+      "name": "Lilla",
+      "hex": "#A855F7"
+    }
+  ],
+  "holidays": {
+    "2026-01-01": "1. Nyttårsdag",
+    "2026-03-29": "Palmesøndag",
+    "2026-04-02": "Skjærtorsdag",
+    "2026-04-03": "Langfredag",
+    "2026-04-05": "1. Påskedag",
+    "2026-04-06": "2. Påskedag",
+    "2026-05-01": "Offentlig høytidsdag",
+    "2026-05-14": "Kristi Himmelfart",
+    "2026-05-17": "Grunnlovsdag",
+    "2026-05-24": "1. Pinsedag",
+    "2026-05-25": "2. Pinsedag",
+    "2026-12-25": "1. Juledag",
+    "2026-12-26": "2. Juledag",
+    "2027-01-01": "1. Nyttårsdag",
+    "2027-03-21": "Palmesøndag",
+    "2027-03-25": "Skjærtorsdag",
+    "2027-03-26": "Langfredag",
+    "2027-03-28": "1. Påskedag",
+    "2027-03-29": "2. Påskedag",
+    "2027-05-01": "Offentlig høytidsdag",
+    "2027-05-06": "Kristi Himmelfart",
+    "2027-05-16": "1. Pinsedag",
+    "2027-05-17": "17. mai / 2. Pinsedag",
+    "2027-12-25": "1. Juledag",
+    "2027-12-26": "2. Juledag"
+  },
+  "commercialDays": {
+    "2026-02-08": "Morsdag",
+    "2026-02-14": "Valentines Day",
+    "2026-02-15": "Fastelavn",
+    "2026-02-16": "Vinterferie",
+    "2026-02-23": "Vinterferie",
+    "2026-06-23": "Skt. Hans",
+    "2026-10-31": "Halloween",
+    "2026-11-08": "Farsdag",
+    "2026-11-11": "Singles' Day",
+    "2026-11-27": "Black Friday",
+    "2026-11-30": "Cyber Monday"
+  },
+  "backgrounds": [
+    {
+      "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop",
+      "name": "Fjell ved soloppgang"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1509529711801-deac231925ac?q=80&w=2070&auto=format&fit=crop",
+      "name": "Nordlys - Norge"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1681300091697-f8d16d5868a1?q=80&w=2070&auto=format&fit=crop",
+      "name": "Badehus - Danmark"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1618889128235-93807ca6b114?q=80&w=2070&auto=format&fit=crop",
+      "name": "Buddha på rekke - What Po, Thailand "
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1562707786-7d2b807961c4?q=80&w=2070&auto=format&fit=crop",
+      "name": "Sushi Toro - Tokyo, Japan"
+    },
+    {
+      "url": "https://plus.unsplash.com/premium_photo-1691414363231-836e2e1bf0ed?q=80&w=2070&auto=format&fit=crop",
+      "name": "Nyhavn, København"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop",
+      "name": "Stjernehimmel"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1701762292610-3323efd62273?q=80&w=2070&auto=format&fit=crop",
+      "name": "Tokyo by Night"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1593839154339-377e24b3ba32?q=80&w=2070&auto=format&fit=crop",
+      "name": "Tokyo City"
+    }
+  ]
+}
